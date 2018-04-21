@@ -1,0 +1,16 @@
+Base: 
+  - Kobold:
+      name: "kobold"
+      glyph: "k"
+      color: "light green"
+      health: 5
+      strength: 3
+      defense: 1
+
+  - Orc:
+      name: "orc"
+      glyph: "o"
+      color: "light green"
+      health: 10 
+      strength: 5
+      defense: 1
