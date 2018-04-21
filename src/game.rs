@@ -323,6 +323,15 @@ fn action_log(action: &Action, game_state: &mut GameState) {
             };
             game_state.messages.add(format!("The {} has died!", name), color);
         },
+        Command::Confuse => {
+            let name = utils::get_target_name(action, &game_state.spawning_pool);
+            let color = if action.actor.unwrap() == game_state.player {
+                colors::RED
+            } else {
+                colors::WHITE
+            };
+            game_state.messages.add(format!("The {} is confused!", name), color);
+        },
         Command::TakeDamage{damage} => {
             let attacker_name = utils::get_actor_name(action, &game_state.spawning_pool);
             let target_name = utils::get_target_name(action, &game_state.spawning_pool);
