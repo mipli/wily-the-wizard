@@ -1,8 +1,5 @@
-use tcod::colors::Color;
 use tcod::colors;
 use tcod;
-
-use inflector::Inflector;
 
 use spawning_pool::EntityId;
 
@@ -18,10 +15,9 @@ use actions::*;
 use rules::*;
 use utils;
 use consts::*;
+use messages::*;
 use spells;
 use scheduler::{Scheduler};
-
-pub type Messages = Vec<(String, Color)>;
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
@@ -70,19 +66,6 @@ impl GameState {
         if let Some(memory) = self.spawning_pool.get_mut::<components::MapMemory>(self.player) {
             memory.reset();
         }
-    }
-}
-
-pub trait MessageLog {
-    fn add<T: Into<String>>(&mut self, message: T, color: Color);
-}
-
-impl MessageLog for Messages {
-    fn add<T: Into<String>>(&mut self, message: T, color: Color) {
-        if self.len() == LOG_MEMORY as usize {
-            self.remove(0);
-        }
-        self.push((message.into(), color));
     }
 }
 
@@ -174,7 +157,6 @@ impl Game {
                     ActionStatus::Accept => {
                         performed_action = perform_action(action, &mut self.state, &mut self.reaction_queue) || performed_action;
                         if performed_action {
-                            action_log(action, &mut self.state);
                             animate_action(action, animations, &self.state.spawning_pool);
                         }
                         self.reaction_queue.reverse();
@@ -278,71 +260,6 @@ fn animate_action(action: &Action, animations: &mut Vec<render::Animation>, spaw
                     ));
                 }
             }
-        },
-        _ => {}
-    }
-}
-
-fn action_log(action: &Action, game_state: &mut GameState) {
-    match action.command {
-        Command::PickUpItem{item_id} => {
-            let name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
-            game_state.messages.add(format!("{} picks up {}", name.to_sentence_case(), item_name), colors::WHITE);
-        },
-        Command::UseItem{item_id} => {
-            let name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
-            game_state.messages.add(format!("{} uses {}", name.to_sentence_case(), item_name), colors::WHITE);
-        },
-        Command::EquipItem{item_id} => {
-            let name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
-            game_state.messages.add(format!("{} equips {}", name.to_sentence_case(), item_name), colors::WHITE);
-        },
-        Command::UnequipItem{item_id} => {
-            let name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
-            game_state.messages.add(format!("{} takes off the {}", name.to_sentence_case(), item_name), colors::WHITE);
-        },
-        Command::Heal{amount} => {
-            let actor_name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let target_name = utils::get_target_name(action, &game_state.spawning_pool);
-            if actor_name == target_name {
-                game_state.messages.add(format!("{} healed for {}", target_name.to_sentence_case(), amount), colors::LIGHT_GREEN);
-            } else {
-                game_state.messages.add(format!("{} healed {} for {}", actor_name.to_sentence_case(), target_name, amount), colors::LIGHT_GREEN);
-            }
-        },
-        Command::PreKillEntity => {
-            let name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let color = if action.actor.unwrap() == game_state.player {
-                colors::RED
-            } else {
-                colors::WHITE
-            };
-            game_state.messages.add(format!("The {} has died!", name), color);
-        },
-        Command::Confuse => {
-            let name = utils::get_target_name(action, &game_state.spawning_pool);
-            let color = if action.actor.unwrap() == game_state.player {
-                colors::RED
-            } else {
-                colors::WHITE
-            };
-            game_state.messages.add(format!("The {} is confused!", name), color);
-        },
-        Command::TakeDamage{damage} => {
-            let attacker_name = utils::get_actor_name(action, &game_state.spawning_pool);
-            let target_name = utils::get_target_name(action, &game_state.spawning_pool);
-
-            let color = if action.actor.unwrap() == game_state.player {
-                colors::WHITE
-            } else {
-                colors::RED
-            };
-            game_state.messages.add(format!("The {} attacked the {} for {}", attacker_name, target_name, damage), color);
-
         },
         _ => {}
     }

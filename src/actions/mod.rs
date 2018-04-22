@@ -1,3 +1,5 @@
+use inflector::Inflector;
+
 use std::cmp::min;
 use tcod::colors;
 use game::*;
@@ -6,6 +8,8 @@ use components;
 mod items;
 mod definitions;
 
+use utils;
+use messages::*;
 pub use self::definitions::*;
 use self::items::*;
 use spells;
@@ -90,7 +94,7 @@ fn perform_cast_spell(action: &Action, state: &mut GameState, reaction_actions: 
 }
 
 fn perform_confuse(action: &Action, game_state: &mut GameState, _reaction_actions: &mut Vec<Action>) -> bool {
-    if let Some(target) = action.target {
+    let performed = if let Some(target) = action.target {
         if let Some(status_effects) = game_state.spawning_pool.get_mut::<components::StatusEffects>(target) {
             status_effects.confused = Some(5);
             return true;
@@ -101,7 +105,17 @@ fn perform_confuse(action: &Action, game_state: &mut GameState, _reaction_action
         true
     } else {
         false
+    };
+
+    if performed {
+        let name = utils::get_target_name(action, &game_state.spawning_pool);
+        if action.actor.unwrap() == game_state.player {
+            game_state.messages.log(MessageLevel::Important, format!("The {} is confused!", name));
+        } else {
+            game_state.messages.log(MessageLevel::Info, format!("The {} is confused!", name));
+        };
     }
+    performed
 }
 
 fn perform_lightning_strike(action: &Action, _game_state: &mut GameState, reaction_actions: &mut Vec<Action>) {
@@ -116,8 +130,19 @@ fn perform_heal(action: &Action, game_state: &mut GameState, _reactions_actions:
         Command::Heal{amount} => amount,
         _ => 0
     };
+    let mut performed = false;
     if let Some(stats) = game_state.spawning_pool.get_mut::<components::Stats>(action.target.unwrap()) {
         stats.health = min(stats.health + amount, stats.max_health);
+        performed = true;
+    }
+    if performed {
+        let actor_name = utils::get_actor_name(action, &game_state.spawning_pool);
+        let target_name = utils::get_target_name(action, &game_state.spawning_pool);
+        if actor_name == target_name {
+            game_state.messages.log(MessageLevel::Info, format!("{} healed for {}", target_name.to_sentence_case(), amount));
+        } else {
+            game_state.messages.log(MessageLevel::Info, format!("{} healed {} for {}", actor_name.to_sentence_case(), target_name, amount));
+        }
     }
 }
 
@@ -140,28 +165,42 @@ fn perform_drop_item(action: &Action, game_state: &mut GameState, _reactions_act
 
 fn perform_equip_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
     if let Command::EquipItem{item_id} = action.command {
+        let mut performed = false;
         let slot = match game_state.spawning_pool.get::<components::Item>(item_id) {
             Some(item) => item.equip,
             None => None
         };
         if let Some(mut equipment) = game_state.spawning_pool.get_mut::<components::Equipment>(action.actor.unwrap()) {
             if let Some(slot) = slot {
+                performed = true;
                 equipment.items.insert(slot, item_id);
             }
+        }
+        if performed {
+            let name = utils::get_actor_name(action, &game_state.spawning_pool);
+            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
+            game_state.messages.log(MessageLevel::Info, format!("{} equips {}", name.to_sentence_case(), item_name));
         }
     }
 }
 
 fn perform_unequip_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
     if let Command::UnequipItem{item_id} = action.command {
+        let mut performed = false;
         let slot = match game_state.spawning_pool.get::<components::Item>(item_id) {
             Some(item) => item.equip,
             None => None
         };
         if let Some(mut equipment) = game_state.spawning_pool.get_mut::<components::Equipment>(action.actor.unwrap()) {
             if let Some(slot) = slot {
+                performed = true;
                 equipment.items.remove(&slot);
             }
+        }
+        if performed {
+            let name = utils::get_actor_name(action, &game_state.spawning_pool);
+            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
+            game_state.messages.log(MessageLevel::Info, format!("{} takes off the {}", name.to_sentence_case(), item_name));
         }
     }
 }
@@ -181,11 +220,21 @@ fn perform_pick_up_item(action: &Action, game_state: &mut GameState, _reactions_
         }
         if picked {
             game_state.spawning_pool.remove::<components::Physics>(item_id);
+            let name = utils::get_actor_name(action, &game_state.spawning_pool);
+            let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
+            game_state.messages.log(MessageLevel::Info, format!("{} picked up {}", name.to_sentence_case(), item_name));
         }
     }
+
 }
 
 fn perform_kill_entity(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+    let name = utils::get_actor_name(action, &game_state.spawning_pool);
+    if action.actor.unwrap() == game_state.player {
+        game_state.messages.log(MessageLevel::Important, format!("The {} has died!", name));
+    } else {
+        game_state.messages.log(MessageLevel::Info, format!("The {} has died!", name));
+    }
     game_state.spawning_pool.remove_entity(action.actor.unwrap());
 }
 
@@ -197,6 +246,8 @@ fn perform_take_damage(action: &Action, game_state: &mut GameState, reactions_ac
         _ => unreachable!()
     };
 
+    let mut performed = false;
+
     if let Some(target) = action.target {
         if let Some(mut stats) = game_state.spawning_pool.get_mut::<components::Stats>(target) {
             stats.health -= damage;
@@ -205,15 +256,23 @@ fn perform_take_damage(action: &Action, game_state: &mut GameState, reactions_ac
                 reactions_actions.push(Action{
                     actor: Some(target),
                     target: None,
-                    command: Command::PreKillEntity
-                });
-                reactions_actions.push(Action{
-                    actor: Some(target),
-                    target: None,
                     command: Command::KillEntity
                 });
             }
+
+            performed = true;
         }
+    }
+
+    if performed {
+        let attacker_name = utils::get_actor_name(action, &game_state.spawning_pool);
+        let target_name = utils::get_target_name(action, &game_state.spawning_pool);
+
+        if action.target.unwrap() == game_state.player {
+            game_state.messages.log(MessageLevel::Important, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
+        } else {
+            game_state.messages.log(MessageLevel::Info, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
+        };
     }
 }
 

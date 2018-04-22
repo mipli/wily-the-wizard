@@ -1,5 +1,9 @@
+use inflector::Inflector;
+
 use spawning_pool::{EntityId};
 use actions::definitions::*;
+use utils;
+use messages::*;
 use game::*;
 use components;
 use spells;
@@ -14,7 +18,6 @@ pub fn perform_use_item(action: &Action, game_state: &mut GameState, reaction_ac
             components::OnUseCallback::SelfHeal => {
                 if self_heal(action, reaction_actions) {
                     destroy_item(item_id, action, reaction_actions);
-                    return true;
                 }
             },
             components::OnUseCallback::Spell(spell) => {
@@ -26,6 +29,9 @@ pub fn perform_use_item(action: &Action, game_state: &mut GameState, reaction_ac
                 destroy_item(item_id, action, reaction_actions);
             }
         }
+        let name = utils::get_actor_name(action, &game_state.spawning_pool);
+        let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
+        game_state.messages.log(MessageLevel::Info, format!("{} uses {}", name.to_sentence_case(), item_name));
     }
     true
 }

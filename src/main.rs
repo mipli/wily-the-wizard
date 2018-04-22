@@ -14,6 +14,7 @@ use tcod::console::*;
 
 #[macro_use] extern crate spawning_pool;
 
+mod messages;
 mod spells;
 mod screens;
 mod save;
