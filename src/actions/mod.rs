@@ -69,8 +69,7 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
             true
         },
         Command::Confuse => {
-            perform_confuse(action, game_state, reactions_actions);
-            true
+            perform_confuse(action, game_state, reactions_actions)
         },
         Command::CastSpell{..} => {
             perform_cast_spell(action, game_state, reactions_actions);

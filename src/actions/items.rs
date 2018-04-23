@@ -16,17 +16,16 @@ pub fn perform_use_item(action: &Action, game_state: &mut GameState, reaction_ac
         };
         match on_use {
             components::OnUseCallback::SelfHeal => {
-                if self_heal(action, reaction_actions) {
-                    destroy_item(item_id, action, reaction_actions);
-                }
+                destroy_item(item_id, action, reaction_actions);
+                self_heal(action, reaction_actions);
             },
             components::OnUseCallback::Spell(spell) => {
+                destroy_item(item_id, action, reaction_actions);
                 reaction_actions.push(Action{
                     actor: action.actor,
                     target: None,
                     command: Command::CastSpell{spell: spells::Spell::create(spell)}
                 });
-                destroy_item(item_id, action, reaction_actions);
             }
         }
         let name = utils::get_actor_name(action, &game_state.spawning_pool);
@@ -64,11 +63,10 @@ fn destroy_item(item_id: EntityId, action: &Action, reaction_actions: &mut Vec<A
     });
 }
 
-fn self_heal(action: &Action, reaction_actions: &mut Vec<Action>) -> bool {
+fn self_heal(action: &Action, reaction_actions: &mut Vec<Action>) {
     reaction_actions.push(Action{
         actor: action.actor,
         target: action.actor,
         command: Command::Heal{amount: 10}
     });
-    true
 }

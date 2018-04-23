@@ -90,7 +90,7 @@ pub enum TickResult {
 
 #[derive(Eq, PartialEq)]
 enum ActionTickResult {
-    Invalid,
+    RequireInformation,
     Performed,
     Pass
 }
@@ -109,15 +109,15 @@ impl Game {
         self.current_action = None;
 
         let mut performed_action = false;
-        let mut is_valid = true;
-        while !self.action_queue.is_empty() && is_valid {
+        let mut require_information = false;
+        while !self.action_queue.is_empty() && !require_information {
             if self.current_action.is_none() {
                 self.current_action = Some(self.action_queue.remove(0));
             }
             let res = self.action_tick(animations);
-            is_valid = res != ActionTickResult::Invalid;
+            require_information = res == ActionTickResult::RequireInformation;
             performed_action = res == ActionTickResult::Performed;;
-            if is_valid {
+            if !require_information {
                 self.current_action = None;
             }
         }
@@ -127,7 +127,7 @@ impl Game {
             self.rejection_queue = vec![];
             self.reaction_queue = vec![];
             TickResult::Passed
-        } else if is_valid {
+        } else if !require_information {
             TickResult::Wait(WaitResult::Wait)
         } else if let Some(ref action) = self.current_action {
             TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
@@ -147,21 +147,22 @@ impl Game {
     }
 
     fn action_tick(&mut self, animations: &mut Vec<render::Animation>) -> ActionTickResult {
-        let mut is_valid = true;
+        let mut require_information = false;
         let mut performed_action = false;
         if let Some(ref mut action) = self.current_action {
-            is_valid = validate(action);
-            if is_valid {
+            require_information = check_require_information(action);
+            if !require_information {
                 let action_status = apply_rules(action, &self.state, &mut self.rejection_queue, &mut self.reaction_queue);
                 match action_status {
                     ActionStatus::Accept => {
                         performed_action = perform_action(action, &mut self.state, &mut self.reaction_queue) || performed_action;
                         if performed_action {
                             animate_action(action, animations, &self.state.spawning_pool);
-                        }
-                        self.reaction_queue.reverse();
-                        for a in self.reaction_queue.drain(..) {
-                            self.action_queue.insert(0, a);
+                            if let Some(reaction) = self.reaction_queue.pop() {
+                                self.action_queue.insert(0, reaction);
+                            }
+                        } else {
+                            self.reaction_queue = vec![];
                         }
                     }
                     ActionStatus::Reject => {
@@ -171,8 +172,8 @@ impl Game {
                 };
             }
         }
-        if !is_valid {
-            ActionTickResult::Invalid
+        if require_information {
+            ActionTickResult::RequireInformation
         } else if performed_action {
             ActionTickResult::Performed
         } else {
@@ -222,13 +223,13 @@ impl Game {
     }
 }
 
-fn validate(action: &Action) -> bool {
+fn check_require_information(action: &Action) -> bool {
     match action.command {
         Command::CastSpell{ref spell} => {
-            !(spell.target == spells::SpellTarget::Entity && action.target.is_none())
+            spell.target == spells::SpellTarget::Entity && action.target.is_none()
         },
         _ => {
-            true
+            false
         }
     }
 }

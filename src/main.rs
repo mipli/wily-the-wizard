@@ -115,7 +115,6 @@ fn run_game(tcod: &mut Tcod) {
             match tick_result {
                 TickResult::Passed | TickResult::Wait(WaitResult::Wait) => {},
                 TickResult::Wait(WaitResult::RequireTarget{action}) => {
-                    println!("Requiring target");
                     if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
                         manager.add_screen(Box::new(screens::SingleTargetScreen::new(
                             physics.coord,
