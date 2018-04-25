@@ -92,7 +92,7 @@ impl Screen for GameScreen {
                 }
             },
             Some(InputCommand::TileInteraction) => {
-                get_tile_interaction(state);
+               tile_interaction(state, actions);
             }
             _ => {}
         };
@@ -171,17 +171,22 @@ impl Screen for GameScreen {
     }
 }
 
-fn get_tile_interaction(state: &GameState) -> Option<Vec<Command>> {
-    let pos = utils::get_position(state.player, &state.spawning_pool)?;
-    if let Some(spatial_cell) = state.spatial_table.get(pos) {
-        for entity in &spatial_cell.entities {
-            let glyph = utils::get_glyph(*entity, &state.spawning_pool);
-            if let Some(glyph) = glyph {
-                if glyph == '<' {
-                    return Some(vec![Command::DescendStairs]);
+fn tile_interaction(state: &GameState, actions: &mut Vec<Action>) {
+    if let Some(pos) = utils::get_position(state.player, &state.spawning_pool) {
+        if let Some(spatial_cell) = state.spatial_table.get(pos) {
+            for entity in &spatial_cell.entities {
+                let glyph = utils::get_glyph(*entity, &state.spawning_pool);
+                if let Some(glyph) = glyph {
+                    println!("Glyph: {}", glyph);
+                    if glyph == '<' {
+                        actions.push(Action{
+                            actor: Some(state.player),
+                            target: None,
+                            command: Command::DescendStairs
+                        });
+                    }
                 }
             }
         }
     }
-    None
 }

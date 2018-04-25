@@ -34,6 +34,7 @@ impl GameState {
         let mut spawning_pool = components::SpawningPool::new();
         let player = create_player(&mut spawning_pool, MAP_WIDTH, MAP_HEIGHT);
         let mut scheduler = Scheduler::new();
+        scheduler.schedule_entity(player, 0, &spawning_pool);
         let map = create_map(player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler);
 
         let mut spatial_table = SpatialTable::new(map.dimensions.x, map.dimensions.y);
@@ -98,6 +99,9 @@ enum ActionTickResult {
 
 impl Game {
     pub fn game_tick(&mut self, actions: Vec<Action>, animations: &mut Vec<render::Animation>) -> TickResult {
+        if !actions.is_empty() {
+            println!("actions: {:?}", actions);
+        }
         self.state.scheduler.tick(&self.state.spawning_pool);
         self.update_fov();
         let actions = self.get_actions(actions);

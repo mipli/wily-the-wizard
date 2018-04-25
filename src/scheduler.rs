@@ -79,13 +79,6 @@ impl Scheduler {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.time = 0;
-        self.heap = BinaryHeap::new();
-        self.entries = 0;
-        self.current = None;
-    }
-
     pub fn schedule_entity(&mut self, entity: EntityId, time: i32, spawning_pool: &components::SpawningPool) {
         if spawning_pool.get::<components::Controller>(entity).is_some() {
             self.heap.push(ScheduledEntity{
