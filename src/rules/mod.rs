@@ -4,18 +4,14 @@ use game::*;
 mod items;
 mod definitions;
 mod collision;
-mod attack;
-mod statuses;
 
 pub use self::definitions::*;
 
 pub fn apply_rules(action: &mut Action, game_state: &GameState, rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     let rules = [
-        statuses::confused,
         items::use_item,
         items::apply_equipment_bonus,
         collision::collision,
-        attack::attack_entity
     ];
     if action.command == Command::Abort {
         return ActionStatus::Reject;
