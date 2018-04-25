@@ -14,73 +14,87 @@ pub use self::definitions::*;
 use self::items::*;
 use spells;
 
-pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_actions: &mut Vec<Action>) -> bool {
+#[derive(Debug, PartialEq, Eq)]
+pub enum ActionResult {
+    Failed,
+    Performed{time: i32}
+}
+
+pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_actions: &mut Vec<Action>) -> ActionResult {
     game_state.spatial_table.update(action, &mut game_state.spawning_pool);
     match action.command {
-        Command::Wait | Command::PreKillEntity => true,
-        Command::Abort => false,
+        Command::Wait | Command::PreKillEntity => ActionResult::Performed{time: 100},
+        Command::Abort => ActionResult::Failed,
         Command::DescendStairs => {
             game_state.new_level();
-            true
+            ActionResult::Performed{time: 100}
         },
         Command::WalkDirection{dir} => {
             if let Some(mut physics) = game_state.spawning_pool.get_mut::<components::Physics>(action.actor.unwrap()) {
                 physics.coord += dir;
             }
-            true
+            ActionResult::Performed{time: 100}
         },
         Command::TakeDamage{..} => {
             perform_take_damage(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 0}
         },
         Command::OpenDoor{..} => {
             perform_open_door(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 100}
         },
         Command::KillEntity => {
             perform_kill_entity(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 0}
         },
         Command::PickUpItem{..} => {
             perform_pick_up_item(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 100}
         },
         Command::UseItem{..} => {
-            perform_use_item(action, game_state, reactions_actions)
+            if perform_use_item(action, game_state, reactions_actions) {
+                ActionResult::Performed{time: 0}
+            } else {
+                ActionResult::Failed
+            }
         },
         Command::EquipItem{..} => {
             perform_equip_item(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 50}
         },
         Command::UnequipItem{..} => {
             perform_unequip_item(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 0}
         },
         Command::DropItem{..} => {
             perform_drop_item(action, game_state, reactions_actions);
-            false
+            ActionResult::Performed{time: 0}
         },
         Command::Heal{..} => {
             perform_heal(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 100}
         },
         Command::LightningStrike{..} => {
             perform_lightning_strike(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 100}
         },
         Command::Confuse => {
-            perform_confuse(action, game_state, reactions_actions)
+            if perform_confuse(action, game_state, reactions_actions) {
+                ActionResult::Performed{time: 100}
+            } else {
+                ActionResult::Failed
+            }
         },
         Command::CastSpell{..} => {
             perform_cast_spell(action, game_state, reactions_actions);
-            true
+            ActionResult::Performed{time: 0}
         },
         Command::DestroyItem{..} => {
             perform_destroy_item(action, game_state, reactions_actions);
-            false
+            ActionResult::Performed{time: 0}
         },
         _ => {
-            false
+            ActionResult::Performed{time: 0}
         }
     }
 }

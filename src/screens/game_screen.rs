@@ -97,15 +97,17 @@ impl Screen for GameScreen {
             _ => {}
         };
 
-        if state.scheduler.current_index as u64 == state.player {
-            if let Some(stats) = state.spawning_pool.get::<components::Stats>(state.player) {
-                self.alive = stats.health > 0;
-            } else {
-                self.alive = false;
-            }
-            if !self.alive && !self.game_over {
-                self.screens.push(Box::new(GameOverScreen::new()));
-                self.game_over = true;
+        if let Some(current) = state.scheduler.current {
+            if current == state.player {
+                if let Some(stats) = state.spawning_pool.get::<components::Stats>(state.player) {
+                    self.alive = stats.health > 0;
+                } else {
+                    self.alive = false;
+                }
+                if !self.alive && !self.game_over {
+                    self.screens.push(Box::new(GameOverScreen::new()));
+                    self.game_over = true;
+                }
             }
         }
 

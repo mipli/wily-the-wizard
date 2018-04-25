@@ -7,7 +7,6 @@ use spawning_pool::EntityId;
 use utils;
 use map;
 
-use utils::*;
 use messages::*;
 use point::*;
 use actions::*;

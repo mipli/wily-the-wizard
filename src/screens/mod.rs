@@ -151,6 +151,7 @@ pub fn create_new_game() -> Game {
     Game {
         state,
         fov,
+        tick_time: 0,
         current_action: None,
         action_queue: vec![],
         reaction_queue: vec![],

@@ -104,9 +104,6 @@ fn run_game(tcod: &mut Tcod) {
             game.state.spatial_table.dirty = false;
             update_fov_map(&mut game.fov, &game.state.map, &game.state.spatial_table);
         }
-        if !actions.is_empty() {
-            println!("Actions: {:?}", actions);
-        }
 
         let mut animations = vec![];
         if game.current_action.is_none() || !actions.is_empty() {
@@ -120,7 +117,6 @@ fn run_game(tcod: &mut Tcod) {
                             physics.coord,
                             &game.state,
                             Box::new(move |e, _state, actions| {
-                                println!("Selected entity: {}", e);
                                 let mut act = action.clone();
                                 act.target = Some(e);
                                 actions.push(act);

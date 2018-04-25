@@ -107,7 +107,8 @@ pub fn can_walk(position: Point, grid: &SpatialTable, map: &Map) -> bool {
 }
 
 pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler) -> Map{
-    scheduler.add_entity(player, spawning_pool);
+    scheduler.reset();
+    scheduler.schedule_entity(player, 0, spawning_pool);
     let creatures = load_creatures();
 
     let (cells, rooms) = generator::generate_map(width, height); 
@@ -120,7 +121,7 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
         } else {
             add_item(room.center(), spawning_pool)
         };
-        scheduler.add_entity(entity, spawning_pool);
+        scheduler.schedule_entity(entity, 0, spawning_pool);
     }
 
     let map = Map::new(&cells);

@@ -189,11 +189,13 @@ fn render_info_panel(panel: &mut Offscreen, game_state: &GameState) {
     panel.set_default_foreground(colors::LIGHT_GREY);
     panel.print_frame(0, 0, INFO_PANEL_WIDTH, INFO_PANEL_HEIGHT, true, BackgroundFlag::None, Some("Information"));
 
+    panel.print_rect(4, INFO_PANEL_HEIGHT-1, INFO_PANEL_WIDTH - 2, 0, format!("Tick: {}", game_state.scheduler.time));
+
     if let Some(memory) = game_state.spawning_pool.get::<components::MapMemory>(game_state.player) {
         if let Some(physics) = game_state.spawning_pool.get::<components::Physics>(game_state.player) {
             let entities = game_state.spatial_table.in_circle(physics.coord, 5);
             panel.set_default_foreground(colors::WHITE);
-            let mut y = 1;
+            let mut y = 2;
             for (pos, entity) in entities {
                 if !memory.is_visible(pos.x, pos.y) || entity == game_state.player {
                     continue;

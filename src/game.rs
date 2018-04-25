@@ -76,6 +76,7 @@ pub struct Game {
     pub reaction_queue: Vec<Action>,
     pub rejection_queue: Vec<Action>,
     pub fov: tcod::map::Map,
+    pub tick_time: i32
 }
 
 pub enum WaitResult {
@@ -88,18 +89,17 @@ pub enum TickResult {
     Wait(WaitResult)
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 enum ActionTickResult {
     RequireInformation,
-    Performed,
+    Performed{time: i32},
     Pass
 }
 
 impl Game {
     pub fn game_tick(&mut self, actions: Vec<Action>, animations: &mut Vec<render::Animation>) -> TickResult {
-        if self.state.scheduler.get_current() == self.state.player {
-            self.update_fov();
-        }
+        self.state.scheduler.tick(&self.state.spawning_pool);
+        self.update_fov();
         let actions = self.get_actions(actions);
         if let Some(mut actions) = actions {
             for action in actions.drain(..) {
@@ -116,23 +116,30 @@ impl Game {
             }
             let res = self.action_tick(animations);
             require_information = res == ActionTickResult::RequireInformation;
-            performed_action = res == ActionTickResult::Performed;;
+            if let ActionTickResult::Performed{time} = res {
+                performed_action = true;
+                self.tick_time += time;
+            }
             if !require_information {
                 self.current_action = None;
             }
         }
-        if performed_action {
-            self.state.scheduler.tick();
+        if require_information {
+            if let Some(ref action) = self.current_action {
+                TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
+            } else {
+                panic!("TickResult waiting without game.current_action");
+            }
+        } else if performed_action {
+            let entity = self.state.scheduler.get_current();
+            self.state.scheduler.schedule_entity(entity, self.tick_time, &self.state.spawning_pool);
+            self.tick_time = 0;
             self.current_action = None;
             self.rejection_queue = vec![];
             self.reaction_queue = vec![];
             TickResult::Passed
-        } else if !require_information {
-            TickResult::Wait(WaitResult::Wait)
-        } else if let Some(ref action) = self.current_action {
-            TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
         } else {
-            panic!("TickResult waiting without game.current_action");
+            TickResult::Wait(WaitResult::Wait)
         }
     }
 
@@ -149,13 +156,21 @@ impl Game {
     fn action_tick(&mut self, animations: &mut Vec<render::Animation>) -> ActionTickResult {
         let mut require_information = false;
         let mut performed_action = false;
+        let mut used_time = 0;
         if let Some(ref mut action) = self.current_action {
             require_information = check_require_information(action);
             if !require_information {
                 let action_status = apply_rules(action, &self.state, &mut self.rejection_queue, &mut self.reaction_queue);
                 match action_status {
                     ActionStatus::Accept => {
-                        performed_action = perform_action(action, &mut self.state, &mut self.reaction_queue) || performed_action;
+                        let action_result = perform_action(action, &mut self.state, &mut self.reaction_queue);
+                        performed_action = performed_action || match action_result {
+                            ActionResult::Performed{time} => {
+                                used_time += time;
+                                true
+                            },
+                            _ => false
+                        };
                         if performed_action {
                             animate_action(action, animations, &self.state.spawning_pool);
                             if let Some(reaction) = self.reaction_queue.pop() {
@@ -175,7 +190,7 @@ impl Game {
         if require_information {
             ActionTickResult::RequireInformation
         } else if performed_action {
-            ActionTickResult::Performed
+            ActionTickResult::Performed{time: used_time}
         } else {
             ActionTickResult::Pass
         }
@@ -194,18 +209,20 @@ impl Game {
                components::AI::Basic => ai::perform_basic_ai(self.state.scheduler.get_current(), &self.state)
             }
         } else {
-            self.state.scheduler.remove_entity();
-            return None;
+            panic!("SHOULD NOT BE HERE");
         }
     }
 
     pub fn update_fov(&mut self) {
-        let coord = match self.state.spawning_pool.get::<components::Physics>(self.state.player) {
+        let entity = self.state.scheduler.get_current();
+        let coord = match self.state.spawning_pool.get::<components::Physics>(entity) {
             Some(physics) => physics.coord,
             None => return
         };
-        self.calculate_fov(coord.x, coord.y, 5);
-        if let Some(map_memory) = self.state.spawning_pool.get_mut::<components::MapMemory>(self.state.player) {
+        if self.state.spawning_pool.get::<components::MapMemory>(entity).is_some() {
+            self.calculate_fov(coord.x, coord.y, 5);
+        }
+        if let Some(map_memory) = self.state.spawning_pool.get_mut::<components::MapMemory>(entity) {
             map_memory.clear_visible();
             for x in 0..map_memory.dimensions.x {
                 for y in 0..map_memory.dimensions.y {
