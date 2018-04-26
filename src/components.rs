@@ -103,13 +103,6 @@ pub struct Flags {
     pub solid: bool
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub enum ItemType {
-    HealingPotion,
-    Sword,
-    Shield
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatisticsBonus {
     pub strength: i32,
@@ -118,15 +111,22 @@ pub struct StatisticsBonus {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OnUseCallback {
-    SelfHeal,
     Spell(spells::Spells)
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum ItemKind {
+    Scroll,
+    Potion,
+    Equipment
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Item {
     pub equip: Option<EquipmentSlot>,
     pub statistics_bonus: Option<StatisticsBonus>,
-    pub on_use: Option<OnUseCallback>
+    pub on_use: Option<OnUseCallback>,
+    pub kind: ItemKind
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

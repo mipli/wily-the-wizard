@@ -57,11 +57,8 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
             ActionResult::Performed{time: 100}
         },
         Command::UseItem{..} => {
-            if perform_use_item(action, game_state, reactions_actions) {
-                ActionResult::Performed{time: 0}
-            } else {
-                ActionResult::Failed
-            }
+            perform_use_item(action, game_state, reactions_actions);
+            ActionResult::Performed{time: 0}
         },
         Command::EquipItem{..} => {
             perform_equip_item(action, game_state, reactions_actions);

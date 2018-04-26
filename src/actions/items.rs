@@ -8,31 +8,30 @@ use game::*;
 use components;
 use spells;
 
-pub fn perform_use_item(action: &Action, game_state: &mut GameState, reaction_actions: &mut Vec<Action>) -> bool {
+pub fn perform_use_item(action: &Action, game_state: &mut GameState, reaction_actions: &mut Vec<Action>) {
     if let Some(on_use) = get_callback(action, &game_state.spawning_pool) {
-        let item_id = match action.command {
-            Command::UseItem{item_id} => item_id,
-            _ => return false
-        };
-        match on_use {
-            components::OnUseCallback::SelfHeal => {
-                destroy_item(item_id, action, reaction_actions);
-                self_heal(action, reaction_actions);
-            },
-            components::OnUseCallback::Spell(spell) => {
-                destroy_item(item_id, action, reaction_actions);
-                reaction_actions.push(Action{
-                    actor: action.actor,
-                    target: None,
-                    command: Command::CastSpell{spell: spells::Spell::create(spell)}
-                });
+        if let Command::UseItem{item_id} = action.command {
+            if let Some(item) = game_state.spawning_pool.get::<components::Item>(item_id) {
+                match on_use {
+                    components::OnUseCallback::Spell(spell) => {
+                        destroy_item(item_id, action, reaction_actions);
+                        let mut act = Action {
+                            actor: action.actor,
+                            target: None,
+                            command: Command::CastSpell{spell: spells::Spell::create(spell)}
+                        };
+                        if item.kind == components::ItemKind::Potion {
+                            act.target = action.actor;
+                        }
+                        reaction_actions.push(act);
+                    }
+                }
+                let name = utils::get_actor_name(action, &game_state.spawning_pool);
+                let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
+                game_state.messages.log(MessageLevel::Info, format!("{} uses {}", name.to_sentence_case(), item_name));
             }
         }
-        let name = utils::get_actor_name(action, &game_state.spawning_pool);
-        let item_name = utils::get_entity_name(item_id, &game_state.spawning_pool);
-        game_state.messages.log(MessageLevel::Info, format!("{} uses {}", name.to_sentence_case(), item_name));
     }
-    true
 }
 
 fn get_callback(action: &Action, spawning_pool: &components::SpawningPool) -> Option<components::OnUseCallback> {
@@ -60,13 +59,5 @@ fn destroy_item(item_id: EntityId, action: &Action, reaction_actions: &mut Vec<A
         actor: action.actor,
         target: None,
         command: Command::DestroyItem{item_id}
-    });
-}
-
-fn self_heal(action: &Action, reaction_actions: &mut Vec<Action>) {
-    reaction_actions.push(Action{
-        actor: action.actor,
-        target: action.actor,
-        command: Command::Heal{amount: 10}
     });
 }

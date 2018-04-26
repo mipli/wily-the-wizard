@@ -7,7 +7,8 @@ use components;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Spells {
     LightningStrike,
-    Confusion
+    Confusion,
+    Heal
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -42,6 +43,14 @@ impl Spell {
                     power: 0,
                     target: SpellTarget::Closest
                 }
+            },
+            Spells::Heal => {
+                Spell {
+                    name: "Heal".to_string(),
+                    kind: Spells::Heal,
+                    power: 5,
+                    target: SpellTarget::Entity
+                }
             }
         }
     }
@@ -66,6 +75,13 @@ pub fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, s
                 actor: caster,
                 target,
                 command: Command::Confuse
+            });
+        },
+        Spells::Heal => {
+            reaction_actions.push(Action{
+                actor: caster,
+                target,
+                command: Command::Heal{amount: spell.power}
             });
         }
     }
