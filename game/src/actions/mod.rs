@@ -306,33 +306,30 @@ fn perform_open_door(action: &Action, game_state: &mut GameState, _reactions_act
 }
 
 fn perform_attack_entity(action: &Action, game_state: &GameState, reaction_actions: &mut Vec<Action>) {
-    match action.command {
-        Command::AttackEntity{bonus_strength, bonus_defense} => {
-            if let Some(actor) = action.actor {
-                let target_id = match action.target {
-                    Some(id) => id,
-                    _ => unreachable!()
-                };
+    if let Command::AttackEntity{bonus_strength, bonus_defense} = action.command {
+        if let Some(actor) = action.actor {
+            let target_id = match action.target {
+                Some(id) => id,
+                _ => unreachable!()
+            };
 
-                let strength = match game_state.spawning_pool.get::<components::Stats>(actor) {
-                    Some(stats) => stats.strength,
-                    None => 0 
-                };
-                let target_defense = bonus_defense + match game_state.spawning_pool.get::<components::Stats>(target_id) {
-                    Some(stats) => stats.defense,
-                    None => 0 
-                };
-                let attack_strength = bonus_strength + strength;
+            let strength = match game_state.spawning_pool.get::<components::Stats>(actor) {
+                Some(stats) => stats.strength,
+                None => 0 
+            };
+            let target_defense = bonus_defense + match game_state.spawning_pool.get::<components::Stats>(target_id) {
+                Some(stats) => stats.defense,
+                None => 0 
+            };
+            let attack_strength = bonus_strength + strength;
 
-                let damage = max(1, attack_strength - target_defense);
+            let damage = max(1, attack_strength - target_defense);
 
-                reaction_actions.push(Action{
-                    target: Some(target_id),
-                    actor: action.actor,
-                    command: Command::TakeDamage{damage}
-                });
-            }
-        },
-        _ => {}
+            reaction_actions.push(Action{
+                target: Some(target_id),
+                actor: action.actor,
+                command: Command::TakeDamage{damage}
+            });
+        }
     }
 }

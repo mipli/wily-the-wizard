@@ -108,21 +108,23 @@ fn carve<T: Rng>(leaf: &Leaf, map: &mut Map, rng: &mut T) -> Vec<Rect> {
             vec![]
         };
 
-        {
-            let left = rng.choose(&left_rooms);
-            let right = rng.choose(&right_rooms);
-            if let Some(left) = left {
-                if let Some(right) = right {
-                    carve_tunnel(left.x1, left.y1, right.x1, right.y1, map, rng);
-                }
-            }
-        }
+        connect_rooms(&left_rooms, &right_rooms, map, rng);
 
         let mut rooms: Vec<Rect> = vec![];
         rooms.append(&mut left_rooms);
         rooms.append(&mut right_rooms);
 
         return rooms;
+    }
+}
+
+fn connect_rooms<T: Rng>(left_rooms: &[Rect], right_rooms: &[Rect], map: &mut Map, rng: &mut T) {
+    let left = rng.choose(left_rooms);
+    let right = rng.choose(right_rooms);
+    if let Some(left) = left {
+        if let Some(right) = right {
+            carve_tunnel(left.x1, left.y1, right.x1, right.y1, map, rng);
+        }
     }
 }
 

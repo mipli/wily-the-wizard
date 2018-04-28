@@ -112,14 +112,14 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
     };
 
     let m = bsp::generate(width, height, 5, &mut rng);
-    spawning_pool.set(player, components::Physics{coord: m.rooms[0].center().into()});
-    add_down_stairs(m.rooms[1].center().into(), spawning_pool);
+    spawning_pool.set(player, components::Physics{coord: m.rooms[0].center()});
+    add_down_stairs(m.rooms[1].center(), spawning_pool);
     for room in m.rooms.iter().skip(2) {
         let entity = if rand::random::<bool>() {
             let c = thread_rng().gen_range(0, creatures.len());
-            create_creature(&creatures[c as usize], room.center().into(), spawning_pool)
+            create_creature(&creatures[c as usize], room.center(), spawning_pool)
         } else {
-            add_item(room.center().into(), spawning_pool)
+            add_item(room.center(), spawning_pool)
         };
         scheduler.schedule_entity(entity, 0, spawning_pool);
     }
