@@ -7,7 +7,7 @@ use tcod::colors;
 
 use render;
 
-use point::*;
+use geo::*;
 use consts::*;
 use actions::*;
 use game::*;

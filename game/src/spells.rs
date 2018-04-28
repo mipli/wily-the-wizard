@@ -1,7 +1,7 @@
 use spawning_pool::{EntityId};
 use game::*;
 use actions::{Action, Command};
-use point::*;
+use geo::*;
 use components;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]

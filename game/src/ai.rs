@@ -1,5 +1,5 @@
 use spawning_pool::{EntityId};
-use point::*;
+use geo::*;
 use game::*;
 use actions::*;
 use path;

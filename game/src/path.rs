@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use utils;
 use spatial::*;
-use point::*;
+use geo::*;
 use map::*;
 
 #[derive(Copy, Clone, Eq, PartialEq)]

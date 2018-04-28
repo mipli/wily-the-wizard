@@ -1,7 +1,7 @@
 use components;
 use spawning_pool::EntityId;
 use actions::Action;
-use point::*;
+use geo::*;
 
 
 pub fn get_entity_name(id: EntityId, spawning_pool: &components::SpawningPool) -> String {

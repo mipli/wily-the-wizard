@@ -1,5 +1,5 @@
 use spawning_pool::{EntityId};
-use point::*;
+use geo::*;
 use spells;
 
 #[derive(Clone, Debug)]

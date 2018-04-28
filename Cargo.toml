@@ -1,10 +1,6 @@
-[package]
-name = "wily-the-wizard"
-version = "0.1.0"
-authors = ["Michael A. Plikk <michael@plikk.com>"]
-
 [workspace]
 members = [
     "game",
+    "geo",
     "map_generator"
 ]

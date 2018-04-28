@@ -1,6 +1,5 @@
 use tcod::colors;
 use tcod;
-use rand;
 
 use spawning_pool::EntityId;
 
@@ -9,7 +8,7 @@ use components;
 use systems;
 
 use map::*;
-use point::*;
+use geo::*;
 use spatial::*;
 use ai;
 use actions::*;

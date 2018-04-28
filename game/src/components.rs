@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std;
 use tcod::colors;
-use point::*;
+use geo::*;
 use spells;
 
 use spawning_pool::EntityId;

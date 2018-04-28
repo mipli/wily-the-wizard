@@ -1,23 +1,11 @@
+use geo::Rect;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Map {
     pub width: i32,
     pub height: i32,
     pub data: Vec<i32>,
     pub rooms: Vec<Rect>
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Rect {
-    pub x: i32,
-    pub y: i32,
-    pub width: i32,
-    pub height: i32
-}
-
-impl Rect {
-    pub fn center(&self) -> (i32, i32) {
-        (self.x + (self.width / 2), self.y + (self.height / 2))
-    }
 }
 
 impl Map {

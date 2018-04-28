@@ -6,6 +6,7 @@ authors = ["Michael A. Plikk <michael@plikk.com>"]
 [dependencies]
 spawning_pool = { git = "https://github.com/mipli/spawning-pool.git" , branch = "generics" }
 map_generator = { path = "../map_generator" }
+geo = { path = "../geo" }
 time = "0.1.*"
 simple-stopwatch = "0.1.4"
 tcod = { version = "*", features = ["serialization"] }

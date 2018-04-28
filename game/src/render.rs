@@ -3,7 +3,7 @@ use tcod;
 use tcod::console::*;
 use tcod::colors;
 
-use point::*;
+use geo::*;
 use consts::*;
 
 use utils;

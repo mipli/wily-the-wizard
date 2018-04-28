@@ -1,8 +1,8 @@
 use std::cmp::{min, max};
-use rand;
-use rand::{Rng, XorShiftRng, SeedableRng};
+use rand::{Rng};
 
-use map::{Rect, Map};
+use geo::Rect;
+use map::Map;
 
 #[derive(Debug)]
 struct Leaf {
@@ -16,7 +16,7 @@ struct Leaf {
 impl Leaf {
     fn new(x: i32, y: i32, width: i32, height: i32) -> Leaf {
         Leaf {
-            dim: Rect{x, y, width, height},
+            dim: Rect::new(x, y, width, height),
             left: Box::new(None),
             right: Box::new(None),
             vert: false,
@@ -47,11 +47,11 @@ impl Leaf {
         let size = rng.gen_range(min_size, max_size + 1);
 
         if self.vert {
-            self.left = Box::new(Some(Leaf::new(self.dim.x, self.dim.y, size, self.dim.height)));
-            self.right = Box::new(Some(Leaf::new(self.dim.x + size, self.dim.y, self.dim.width - size, self.dim.height)));
+            self.left = Box::new(Some(Leaf::new(self.dim.x1, self.dim.y1, size, self.dim.height)));
+            self.right = Box::new(Some(Leaf::new(self.dim.x1 + size, self.dim.y1, self.dim.width - size, self.dim.height)));
         } else {
-            self.left = Box::new(Some(Leaf::new(self.dim.x, self.dim.y, self.dim.width, size)));
-            self.right = Box::new(Some(Leaf::new(self.dim.x, self.dim.y + size, self.dim.width, self.dim.height - size)));
+            self.left = Box::new(Some(Leaf::new(self.dim.x1, self.dim.y1, self.dim.width, size)));
+            self.right = Box::new(Some(Leaf::new(self.dim.x1, self.dim.y1 + size, self.dim.width, self.dim.height - size)));
         }
 
         true
@@ -81,9 +81,9 @@ fn create_rooms<T: Rng>(leaf: &mut Leaf, min_size: i32, rng: &mut T) {
     if !created_room && leaf.room.is_none() && leaf.dim.width > min_size && leaf.dim.height > min_size {
         let width = rng.gen_range(min_size, leaf.dim.width);
         let height = rng.gen_range(min_size, leaf.dim.height);
-        let x = leaf.dim.x + rng.gen_range(0, leaf.dim.width - width);
-        let y = leaf.dim.y + rng.gen_range(0, leaf.dim.height - height);
-        leaf.room = Some(Rect{x, y, width, height});
+        let x = leaf.dim.x1 + rng.gen_range(0, leaf.dim.width - width);
+        let y = leaf.dim.y1 + rng.gen_range(0, leaf.dim.height - height);
+        leaf.room = Some(Rect::new(x, y, width, height));
     }
 }
 
@@ -91,7 +91,7 @@ fn carve<T: Rng>(leaf: &Leaf, map: &mut Map, rng: &mut T) -> Vec<Rect> {
     if let Some(ref room) = leaf.room {
         for x in 0..room.width {
             for y in 0..room.height {
-                map.set(x + room.x, y + room.y, 1);
+                map.set(x + room.x1, y + room.y1, 1);
             }
         }
         map.add_room(room.clone());
@@ -113,7 +113,7 @@ fn carve<T: Rng>(leaf: &Leaf, map: &mut Map, rng: &mut T) -> Vec<Rect> {
             let right = rng.choose(&right_rooms);
             if let Some(left) = left {
                 if let Some(right) = right {
-                    carve_tunnel(left.x, left.y, right.x, right.y, map, rng);
+                    carve_tunnel(left.x1, left.y1, right.x1, right.y1, map, rng);
                 }
             }
         }
@@ -159,6 +159,7 @@ pub fn generate<T: Rng>(width: i32, height: i32, min_size: i32, rng: &mut T) -> 
 
 #[cfg(test)]
 mod tests {
+    use rand::{XorShiftRng, SeedableRng};
     use bsp::*;
 
     fn test_leaf_equality(actual: &Leaf, expected: &Leaf) {
@@ -192,52 +193,52 @@ mod tests {
         split(&mut root, 3, &mut rng);
         create_rooms(&mut root, 3, &mut rng);
         let leaf = Leaf {
-            dim: Rect{x: 0, y: 0, width: 10, height: 10},
+            dim: Rect::new( 0, 0, 10, 10),
             vert: true,
             room: None,
             left: Box::new(Some(Leaf{
-                dim: Rect{x: 0, y: 0, width: 10, height: 4},
+                dim: Rect::new( 0, 0, 10, 4),
                 vert: true,
                 room: None,
                 left: Box::new(Some(Leaf{
-                    dim: Rect{x: 0, y: 0, width: 6, height: 4},
+                    dim: Rect::new( 0, 0, 6, 4),
                     vert: true,
-                    room: Some(Rect{x: 0, y: 0, width: 4, height: 3}),
+                    room: Some(Rect::new( 0, 0, 4, 3)),
                     left: Box::new(None),
                     right: Box::new(None)
                 })),
                 right: Box::new(Some(Leaf{
-                    dim: Rect{x: 6, y: 0, width: 4, height: 4},
+                    dim: Rect::new( 6, 0, 4, 4),
                     vert: true,
-                    room: Some(Rect{x: 6, y: 0, width: 3, height: 3}),
+                    room: Some(Rect::new( 6, 0, 3, 3)),
                     left: Box::new(None),
                     right: Box::new(None)
                 })),
             })),
             right: Box::new(Some(Leaf{
-                dim: Rect{x: 0, y: 4, width: 10, height: 6},
+                dim: Rect::new( 0, 4, 10, 6),
                 vert: true,
                 room: None,
                 left: Box::new(Some(Leaf{
-                    dim: Rect{x: 0, y: 4, width: 3, height: 6},
+                    dim: Rect::new( 0, 4, 3, 6),
                     vert: true,
                     room: None,
                     left: Box::new(None),
                     right: Box::new(None)
                 })),
                 right: Box::new(Some(Leaf{
-                    dim: Rect{x: 3, y: 4, width: 7, height: 6},
+                    dim: Rect::new( 3, 4, 7, 6),
                     vert: true,
                     room: None,
                     left: Box::new(Some(Leaf{
-                        dim: Rect{x: 3, y: 4, width: 4, height: 6},
+                        dim: Rect::new( 3, 4, 4, 6),
                         vert: true,
-                        room: Some(Rect{x: 3, y: 4, width: 3, height: 5}),
+                        room: Some(Rect::new( 3, 4, 3, 5)),
                         left: Box::new(None),
                         right: Box::new(None)
                     })),
                     right: Box::new(Some(Leaf{
-                        dim: Rect{x: 7, y: 4, width: 3, height: 6},
+                        dim: Rect::new( 7, 4, 3, 6),
                         vert: true,
                         room: None,
                         left: Box::new(None),

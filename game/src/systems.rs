@@ -8,7 +8,7 @@ use utils;
 use map;
 
 use messages::*;
-use point::*;
+use geo::*;
 use actions::*;
 use game::*;
 use components;

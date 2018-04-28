@@ -4,7 +4,7 @@ use tcod::colors;
 
 use spawning_pool::{EntityId};
 use components;
-use point::*;
+use geo::*;
 
 #[derive(Debug)]
 pub struct CreatureData {

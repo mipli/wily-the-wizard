@@ -15,6 +15,7 @@ use tcod::console::*;
 #[macro_use] extern crate spawning_pool;
 
 extern crate map_generator;
+extern crate geo;
 
 mod messages;
 mod spells;
@@ -23,7 +24,6 @@ mod save;
 mod path;
 mod utils;
 mod consts;
-mod point;
 mod spatial;
 mod map;
 mod scheduler;
@@ -37,7 +37,7 @@ mod rules;
 mod creatures;
 
 use game::*;
-use point::*;
+use geo::*;
 use consts::*;
 use render::*;
 use map::*;

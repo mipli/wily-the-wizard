@@ -9,7 +9,7 @@ use spells;
 use spatial::*;
 use map_generator::{Map as GeneratedMap, bsp};
 use components;
-use point::*;
+use geo::*;
 use spawning_pool::{EntityId};
 use creatures::*;
 use scheduler::{Scheduler};

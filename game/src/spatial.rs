@@ -2,8 +2,8 @@ use spawning_pool::{EntityId};
 use std::collections::HashSet;
 use std::cmp::{min, max};
 
-use point::*;
 use components;
+use geo::*;
 use actions::*;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
