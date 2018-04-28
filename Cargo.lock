@@ -45,6 +45,23 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "game"
+version = "0.1.0"
+dependencies = [
+ "Inflector 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "map_generator 0.1.0",
+ "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_derive 1.0.43 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
+ "simple-stopwatch 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "spawning_pool 0.1.0 (git+https://github.com/mipli/spawning-pool.git?branch=generics)",
+ "tcod 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)",
+ "yaml-rust 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "gcc"
 version = "0.3.54"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -279,23 +296,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "wily-the-wizard"
-version = "0.1.0"
-dependencies = [
- "Inflector 0.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "map_generator 0.1.0",
- "rand 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.43 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_derive 1.0.43 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json 1.0.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "simple-stopwatch 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "spawning_pool 0.1.0 (git+https://github.com/mipli/spawning-pool.git?branch=generics)",
- "tcod 0.12.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.39 (registry+https://github.com/rust-lang/crates.io-index)",
- "yaml-rust 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "winapi"

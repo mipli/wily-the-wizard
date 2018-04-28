@@ -1,5 +1,6 @@
 use tcod::colors;
 use tcod;
+use rand;
 
 use spawning_pool::EntityId;
 
@@ -35,7 +36,7 @@ impl GameState {
         let player = create_player(&mut spawning_pool, MAP_WIDTH, MAP_HEIGHT);
         let mut scheduler = Scheduler::new();
         scheduler.schedule_entity(player, 0, &spawning_pool);
-        let map = create_map(player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler);
+        let map = create_map(player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler, None);
 
         let mut spatial_table = SpatialTable::new(map.dimensions.x, map.dimensions.y);
         spatial_table.reset(&spawning_pool);
@@ -60,7 +61,7 @@ impl GameState {
             }
         }
 
-        let map = create_map(self.player, MAP_WIDTH, MAP_HEIGHT, &mut self.spawning_pool, &mut self.scheduler);
+        let map = create_map(self.player, MAP_WIDTH, MAP_HEIGHT, &mut self.spawning_pool, &mut self.scheduler, None);
         self.spatial_table.reset(&self.spawning_pool);
         self.map = map;
 

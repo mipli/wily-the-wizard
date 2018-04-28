@@ -1,3 +1,6 @@
-pub fn generate() -> i32 {
-    42
-}
+extern crate rand;
+
+pub mod bsp;
+mod map;
+
+pub use map::{Rect, Map};

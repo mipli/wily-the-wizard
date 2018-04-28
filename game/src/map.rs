@@ -7,7 +7,7 @@ use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
 use spells;
 use spatial::*;
-use generator;
+use map_generator::{Map as GeneratedMap, bsp};
 use components;
 use point::*;
 use spawning_pool::{EntityId};
@@ -48,26 +48,23 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(data: &[Vec<i32>]) -> Map {
-        let dimensions = (data.len(), data[0].len());
+    pub fn new(m: &GeneratedMap) -> Map {
         let mut cells = vec![];
 
-        for y in 0..(dimensions.1) {
-            for x in data {
-                let tile_type = match x[y] {
-                    0 => TileType::Wall,
-                    _ => TileType::Floor
-                };
-                cells.push(Cell{
-                    tile_type,
-                    blocks_movement: tile_type == TileType::Wall,
-                    blocks_sight: tile_type == TileType::Wall
-                });
-            }
+        for v in &m.data {
+            let tile_type = match v {
+                0 => TileType::Wall,
+                _ => TileType::Floor
+            };
+            cells.push(Cell{
+                tile_type,
+                blocks_movement: tile_type == TileType::Wall,
+                blocks_sight: tile_type == TileType::Wall
+            });
         }
 
         Map {
-            dimensions: dimensions.into(),
+            dimensions: (m.width, m.height).into(),
             cells
         }
     }
@@ -106,23 +103,28 @@ pub fn can_walk(position: Point, grid: &SpatialTable, map: &Map) -> bool {
     }
 }
 
-pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler) -> Map{
+pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler, seed: Option<[u32; 4]>) -> Map{
     let creatures = load_creatures();
+    let mut rng: XorShiftRng = if let Some(seed) = seed {
+        SeedableRng::from_seed(seed)
+    } else {
+        rand::weak_rng()
+    };
 
-    let (cells, rooms) = generator::generate_map(width, height); 
-    spawning_pool.set(player, components::Physics{coord: rooms[0].center()});
-    add_down_stairs(rooms[1].center(), spawning_pool);
-    for room in rooms.iter().skip(2) {
+    let m = bsp::generate(width, height, 5, &mut rng);
+    spawning_pool.set(player, components::Physics{coord: m.rooms[0].center().into()});
+    add_down_stairs(m.rooms[1].center().into(), spawning_pool);
+    for room in m.rooms.iter().skip(2) {
         let entity = if rand::random::<bool>() {
             let c = thread_rng().gen_range(0, creatures.len());
-            create_creature(&creatures[c as usize], room.center(), spawning_pool)
+            create_creature(&creatures[c as usize], room.center().into(), spawning_pool)
         } else {
-            add_item(room.center(), spawning_pool)
+            add_item(room.center().into(), spawning_pool)
         };
         scheduler.schedule_entity(entity, 0, spawning_pool);
     }
 
-    let map = Map::new(&cells);
+    let map = Map::new(&m);
 
     for x in 1..(map.dimensions.x - 1) {
         for y in 1..(map.dimensions.y - 1) {

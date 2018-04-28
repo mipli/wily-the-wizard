@@ -31,7 +31,6 @@ mod systems;
 mod components;
 mod render;
 mod game;
-mod generator;
 mod ai;
 mod actions;
 mod rules;
@@ -46,7 +45,6 @@ use spatial::*;
 use actions::*;
 
 fn main() {
-    println!("Generator: {}", map_generator::generate());
     let root = Root::initializer()
         .font("fonts/lucida12x12_gs_tc.png", FontLayout::Tcod)
         .font_type(FontType::Greyscale)
