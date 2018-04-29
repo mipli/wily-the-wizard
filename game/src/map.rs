@@ -79,10 +79,15 @@ impl Map {
         x >= 0 && x < self.dimensions.x && y >= 0 && y < self.dimensions.y
     }
 
-    pub fn get_neigbours(&self, x: i32, y: i32) -> Vec<(Point, &Cell)> {
+    pub fn get_neigbours(&self, x: i32, y: i32, only_cardinal: bool) -> Vec<(Point, &Cell)> {
         let mut cells: Vec<(Point, &Cell)> = vec![];
+        let dirs = if only_cardinal {
+            vec![(0, -1), (-1, 0), (1, 0), (0, 1)]
+        } else {
+            vec![(1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+        };
 
-        for dir in &[(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)] {
+        for dir in dirs {
             let p: Point = (x + dir.0, y + dir.1).into();
             if self.in_bounds(p.x, p.y) {
                 cells.push((p, self.get_cell(p.x, p.y)));
@@ -111,10 +116,12 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
         rand::weak_rng()
     };
 
-    let m = bsp::generate(width, height, 5, &mut rng);
-    spawning_pool.set(player, components::Physics{coord: m.rooms[0].center()});
-    add_down_stairs(m.rooms[1].center(), spawning_pool);
-    for room in m.rooms.iter().skip(2) {
+    let generated = bsp::generate(width, height, 5, &mut rng);
+    let map = Map::new(&generated);
+
+    spawning_pool.set(player, components::Physics{coord: generated.rooms[0].center()});
+    add_down_stairs(generated.stairs.unwrap(), spawning_pool);
+    for room in generated.rooms.iter().skip(1) {
         let entity = if rand::random::<bool>() {
             let c = thread_rng().gen_range(0, creatures.len());
             create_creature(&creatures[c as usize], room.center(), spawning_pool)
@@ -124,16 +131,9 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
         scheduler.schedule_entity(entity, 0, spawning_pool);
     }
 
-    let map = Map::new(&m);
-
-    for x in 1..(map.dimensions.x - 1) {
-        for y in 1..(map.dimensions.y - 1) {
-            if map.get_cell(x as i32, y as i32).tile_type != TileType::Floor {
-                continue;
-            }
-            let neighbours = map.get_neigbours(x as i32, y as i32);
-            let floors: Vec<&(Point, &Cell)> = neighbours.iter().filter(|v| v.1.tile_type == TileType::Floor).collect();
-            if floors.len() == 4 && rand::random::<f32>() < 0.2 {
+    for x in 0..generated.width {
+        for y in 0..generated.height {
+            if generated.get(x, y) == 2 {
                 add_door((x, y).into(), spawning_pool);
             }
         }

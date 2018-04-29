@@ -1,9 +1,10 @@
-use geo::Rect;
+use geo::{Rect, Point};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Map {
     pub width: i32,
     pub height: i32,
+    pub stairs: Option<Point>,
     pub data: Vec<i32>,
     pub rooms: Vec<Rect>
 }
@@ -16,8 +17,17 @@ impl Map {
             width,
             height,
             data,
+            stairs: None,
             rooms: vec![]
         }
+    }
+
+    pub fn in_bounds(&self, x: i32, y: i32) -> bool {
+        x >= 0 && x < self.width && y >= 0 && y < self.height
+    }
+
+    pub fn set_stairs(&mut self, pos: Point) {
+        self.stairs = Some(pos);
     }
 
     pub fn pad_map(map: &Map) -> Map {
@@ -28,11 +38,15 @@ impl Map {
                 data[((y + 1) * (map.width + 2) + (x + 1)) as usize] = map.get(x, y);
             }
         }
+        let rooms = map.rooms.iter().map(|room| {
+            Rect::new(room.x1 + 1, room.y1 + 1, room.width, room.height)
+        }).collect();
         Map {
             width: map.width + 2,
             height: map.height + 2,
+            stairs: map.stairs,
             data,
-            rooms: map.rooms.clone()
+            rooms: rooms
         }
     }
 

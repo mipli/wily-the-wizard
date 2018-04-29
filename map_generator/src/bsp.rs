@@ -1,7 +1,8 @@
 use std::cmp::{min, max};
+use std::collections::HashSet;
 use rand::{Rng};
 
-use geo::Rect;
+use geo::{Rect, Point, get_neigbours};
 use map::Map;
 
 #[derive(Debug)]
@@ -123,7 +124,9 @@ fn connect_rooms<T: Rng>(left_rooms: &[Rect], right_rooms: &[Rect], map: &mut Ma
     let right = rng.choose(right_rooms);
     if let Some(left) = left {
         if let Some(right) = right {
-            carve_tunnel(left.x1, left.y1, right.x1, right.y1, map, rng);
+            let start = left.center();
+            let end = right.center();
+            carve_tunnel(start.x, start.y, end.x, end.y, map, rng);
         }
     }
 }
@@ -150,13 +153,59 @@ fn carve_v_tunnel(x: i32, y1: i32, y2: i32, map: &mut Map) {
     }
 }
 
+fn add_stairs<T: Rng>(map: &mut Map, rng: &mut T) {
+    let room = map.rooms[map.rooms.len() - 2];
+    let x = rng.gen_range(1, room.width-1);
+    let y = rng.gen_range(1, room.height-1);
+    map.set_stairs((room.x1 + x, room.y1 + y).into());
+}
+
+fn add_doors<T: Rng>(map: &mut Map, rng: &mut T) {
+    let mut places: HashSet<Point> = Default::default();
+    for room in &map.rooms {
+        if rng.gen::<f32>() < 0.5 {
+            continue;
+        }
+        for x in (room.x1-1)..(room.x2 + 1) {
+            for y in (room.y1-1)..(room.y2 + 1) {
+                if map.get(x, y) == 0 {
+                    continue;
+                }
+                if x == room.x1-1 
+                    || x == room.x2 
+                    || y == room.y1-1 
+                    || y == room.y2 {
+                    let neighbours = get_neigbours(x as i32, y as i32, true);
+                    let next_door = neighbours.iter()
+                        .any(|pos| places.get(pos).is_some());
+                    if next_door {
+                        continue;
+                    }
+                    let walls: Vec<&Point> = neighbours.iter()
+                        .filter(|pos| map.in_bounds(pos.x, pos.y) && map.get(pos.x, pos.y) == 1)
+                        .collect();
+                    if walls.len() == 2 {
+                        places.insert(Point::new(x, y));
+                    }
+                }
+            }
+        }
+    }
+    for pos in places {
+        map.set(pos.x, pos.y, 2);
+    }
+}
+
 pub fn generate<T: Rng>(width: i32, height: i32, min_size: i32, rng: &mut T) -> Map {
     let mut root = Leaf::new(0, 0, width - 2, height - 2);
     split(&mut root, min_size, rng);
     create_rooms(&mut root, min_size, rng);
     let mut map = Map::new(width - 2, height - 2);
     carve(&root, &mut map, rng);
-    Map::pad_map(&map)
+    map = Map::pad_map(&map);
+    add_stairs(&mut map, rng);
+    add_doors(&mut map, rng);
+    map
 }
 
 #[cfg(test)]

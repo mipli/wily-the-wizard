@@ -224,7 +224,7 @@ impl Game {
             None => return
         };
         if self.state.spawning_pool.get::<components::MapMemory>(entity).is_some() {
-            self.calculate_fov(coord.x, coord.y, 5);
+            self.calculate_fov(coord.x, coord.y, 10);
         }
         if let Some(map_memory) = self.state.spawning_pool.get_mut::<components::MapMemory>(entity) {
             map_memory.clear_visible();

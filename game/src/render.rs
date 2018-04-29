@@ -193,6 +193,7 @@ fn render_info_panel(panel: &mut Offscreen, game_state: &GameState) {
 
     if let Some(memory) = game_state.spawning_pool.get::<components::MapMemory>(game_state.player) {
         if let Some(physics) = game_state.spawning_pool.get::<components::Physics>(game_state.player) {
+            panel.print_rect(1, INFO_PANEL_HEIGHT-2, INFO_PANEL_WIDTH - 2, 0, format!("Coord: {}", physics.coord));
             let entities = game_state.spatial_table.in_circle(physics.coord, 5);
             panel.set_default_foreground(colors::WHITE);
             let mut y = 2;
