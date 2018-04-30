@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Michael A. Plikk <michael@plikk.com>"]
 
 [dependencies]
-spawning_pool = { git = "https://github.com/mipli/spawning-pool.git" , branch = "generics" }
+spawning_pool = { git = "https://github.com/mipli/spawning-pool.git" }
 map_generator = { path = "../map_generator" }
 geo = { path = "../geo" }
 time = "0.1.*"

@@ -89,9 +89,6 @@ fn run_game(tcod: &mut Tcod) {
 
         manager.handle_input(&mut game.state);
         manager.tick(&mut game.state, tcod, &mut actions);
-        manager.render(t_delta, &mut game.state, &game.fov, tcod);
-        manager.add_screens(&mut game.state);
-        manager.clear_screens(&mut game.state);
 
         if actions.iter().any(|a| a.command == Command::CreateGame) {
             game = screens::create_new_game();
@@ -107,30 +104,40 @@ fn run_game(tcod: &mut Tcod) {
         }
 
         let mut animations = vec![];
-        if game.current_action.is_none() || !actions.is_empty() {
-            let tick_result = game.game_tick(actions, &mut animations);
+        let tick_result = if game.current_action.is_none() || !actions.is_empty() {
+            game.game_tick(actions, &mut animations)
+        } else {
+            TickResult::Wait(WaitResult::Wait)
+        };
 
-            match tick_result {
-                TickResult::Passed | TickResult::Wait(WaitResult::Wait) => {},
-                TickResult::Wait(WaitResult::RequireTarget{action}) => {
-                    if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
-                        manager.add_screen(Box::new(screens::SingleTargetScreen::new(
-                            physics.coord,
-                            &game.state,
-                            Box::new(move |e, _state, actions| {
-                                let mut act = action.clone();
-                                act.target = Some(e);
-                                actions.push(act);
-                            })
-                        )));
-                    }
+        for animation in animations {
+            tcod.add_animation(animation);
+        }
+
+        manager.render(t_delta, &mut game.state, &game.fov, tcod);
+
+        match tick_result {
+            TickResult::Passed => {
+                game.state.spawning_pool.cleanup_removed();
+            },
+            TickResult::Wait(WaitResult::Wait) => {},
+            TickResult::Wait(WaitResult::RequireTarget{action}) => {
+                if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
+                    manager.add_screen(Box::new(screens::SingleTargetScreen::new(
+                        physics.coord,
+                        &game.state,
+                        Box::new(move |e, _state, actions| {
+                            let mut act = action.clone();
+                            act.target = Some(e);
+                            actions.push(act);
+                        })
+                    )));
                 }
             }
-
-            for animation in animations {
-                tcod.add_animation(animation);
-            }
         }
+
+        manager.add_screens(&mut game.state);
+        manager.clear_screens(&mut game.state);
     }
 }
 

@@ -21,6 +21,7 @@ pub struct GameScreen {
     alive: bool,
     game_over: bool,
     omnipotent: bool,
+    stats: Option<components::Stats>,
     screens: Vec<Box<Screen>>,
     input_command: Option<InputCommand>
 }
@@ -33,6 +34,7 @@ impl GameScreen {
             game_over: false,
             omnipotent: false,
             screens: vec![],
+            stats: None,
             input_command: None,
         }
     }
@@ -48,8 +50,18 @@ impl Screen for GameScreen {
     }
 
     fn render(&mut self, delta: f64, state: &mut GameState, _fov: &tcod::map::Map, tcod: &mut render::Tcod) -> (ScreenResult, Option<ModularWindow>) {
-        let screen = render(tcod, state, self.omnipotent, delta);
-        (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}))
+        let stats: Option<components::Stats> = if let Some(stats) = state.spawning_pool.force_get::<components::Stats>(state.player) {
+            Some(stats.clone())
+        } else {
+            self.stats.clone()
+        };
+        if let Some(stats) = stats {
+            let screen = render(tcod, stats.clone(), state, self.omnipotent, delta);
+            self.stats = Some(stats);
+            (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}))
+        } else {
+            (ScreenResult::Stop, None)
+        }
     }
 
     fn tick(&mut self, state: &mut GameState, _tcod: &mut render::Tcod, actions: &mut Vec<Action>) -> ScreenResult {

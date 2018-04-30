@@ -65,7 +65,7 @@ impl Animation {
     }
 }
 
-pub fn render(tcod: &mut Tcod, game_state: &GameState, omnipotent: bool, delta: f64) -> Offscreen {
+pub fn render(tcod: &mut Tcod, stats: components::Stats, game_state: &GameState, omnipotent: bool, delta: f64) -> Offscreen {
     tcod.time += delta;
     // aim to keep rendering speed at 60 fps
     /*
@@ -78,7 +78,7 @@ pub fn render(tcod: &mut Tcod, game_state: &GameState, omnipotent: bool, delta: 
     render_map(&mut tcod.con, game_state, omnipotent);
     render_entities(&mut tcod.con, game_state, omnipotent);
     render_messages(&mut tcod.messages, game_state);
-    render_stats_panel(&mut tcod.stats_panel, game_state);
+    render_stats_panel(&mut tcod.stats_panel, stats, game_state);
     render_info_panel(&mut tcod.info_panel, game_state);
     tcod.animations = render_animations(&mut tcod.con, &mut tcod.animations, game_state, tcod.time);
 
@@ -210,36 +210,34 @@ fn render_info_panel(panel: &mut Offscreen, game_state: &GameState) {
     }
 }
 
-fn render_stats_panel(panel: &mut Offscreen, game_state: &GameState) {
+fn render_stats_panel(panel: &mut Offscreen, stats: components::Stats, game_state: &GameState) {
     panel.set_default_background(colors::BLACK);
     panel.set_default_foreground(colors::LIGHT_GREY);
     panel.print_frame(0, 0, STATS_PANEL_WIDTH, STATS_PANEL_HEIGHT, true, BackgroundFlag::None, Some("Stats"));
 
-    if let Some(stats) = game_state.spawning_pool.get::<components::Stats>(game_state.player) {
-        let hp_bar = Bar {
-            name: "HP".to_owned(),
-            total_width: 13,
-            value: stats.health,
-            max_value: stats.max_health
-        };
-        render_bar(panel, (1, 4).into(), &hp_bar, colors::LIGHT_RED, colors::DARKER_RED);
+    let hp_bar = Bar {
+        name: "HP".to_owned(),
+        total_width: 13,
+        value: stats.health,
+        max_value: stats.max_health
+    };
+    render_bar(panel, (1, 4).into(), &hp_bar, colors::LIGHT_RED, colors::DARKER_RED);
 
-        panel.set_default_foreground(colors::WHITE);
-        panel.print_ex(
-            1,
-            6,
-            BackgroundFlag::None,
-            TextAlignment::Left,
-            &format!("Strength: {}", stats.strength + utils::get_strength_bonus(game_state.player, &game_state.spawning_pool))
-        );
-        panel.print_ex(
-            1,
-            7,
-            BackgroundFlag::None,
-            TextAlignment::Left,
-            &format!("Defense:  {}", stats.defense + utils::get_defense_bonus(game_state.player, &game_state.spawning_pool))
-        );
-    }
+    panel.set_default_foreground(colors::WHITE);
+    panel.print_ex(
+        1,
+        6,
+        BackgroundFlag::None,
+        TextAlignment::Left,
+        &format!("Strength: {}", stats.strength + utils::get_strength_bonus(game_state.player, &game_state.spawning_pool))
+    );
+    panel.print_ex(
+        1,
+        7,
+        BackgroundFlag::None,
+        TextAlignment::Left,
+        &format!("Defense:  {}", stats.defense + utils::get_defense_bonus(game_state.player, &game_state.spawning_pool))
+    );
 }
 
 struct Bar {
