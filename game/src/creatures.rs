@@ -50,6 +50,7 @@ fn get_color(name: &str) -> colors::Color {
 pub fn create_creature(data: &CreatureData, pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let creature = spawning_pool.spawn_entity();
     spawning_pool.set(creature, components::Visual{
+        always_display: false,
         glyph: data.glyph, 
         color: data.color
     });

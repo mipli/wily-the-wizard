@@ -28,15 +28,10 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub fn get_render_info(&self, visible: bool) -> (char, tcod::colors::Color, tcod::colors::Color) {
-        let color = if visible {
-            colors::DARK_GREY
-        } else {
-            colors::DARKEST_GREY
-        };
+    pub fn get_render_info(&self) -> (char, tcod::colors::Color, tcod::colors::Color) {
         match self.tile_type {
-            TileType::Wall => ('#', color, tcod::colors::Color{r: 0, g: 20, b: 35}),
-            TileType::Floor => ('.', color, tcod::colors::Color{r: 0, g: 10, b: 20})
+            TileType::Wall => ('#', colors::DARK_GREY, tcod::colors::Color{r: 0, g: 20, b: 35}),
+            TileType::Floor => ('.', colors::DARK_GREY, tcod::colors::Color{r: 0, g: 10, b: 20})
         }
     }
 }
@@ -144,7 +139,7 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
 
 fn add_door(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let door = spawning_pool.spawn_entity();
-    spawning_pool.set(door, components::Visual{glyph: '+', color: colors::WHITE});
+    spawning_pool.set(door, components::Visual{always_display: true, glyph: '+', color: colors::WHITE});
     spawning_pool.set(door, components::Physics{coord: (pos.x, pos.y).into()});
     spawning_pool.set(door, components::Information{name: "closed door".to_string()});
     spawning_pool.set(door, components::Flags{block_sight: true, solid: true});
@@ -154,7 +149,7 @@ fn add_door(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityI
 
 fn add_down_stairs(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let stairs = spawning_pool.spawn_entity();
-    spawning_pool.set(stairs, components::Visual{glyph: '<', color: colors::WHITE});
+    spawning_pool.set(stairs, components::Visual{always_display: true, glyph: '<', color: colors::WHITE});
     spawning_pool.set(stairs, components::Physics{coord: (pos.x, pos.y).into()});
     spawning_pool.set(stairs, components::Information{name: "down stairs".to_string()});
     spawning_pool.set(stairs, components::Flags{block_sight: false, solid: false});
@@ -200,7 +195,7 @@ fn add_item(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityI
 
 fn add_sword(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
-    spawning_pool.set(item, components::Visual{glyph: '/', color: colors::LIGHT_CYAN});
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '/', color: colors::LIGHT_CYAN});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
     spawning_pool.set(item, components::Information{name: "sword".to_string()});
@@ -218,7 +213,7 @@ fn add_sword(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entity
 
 fn add_confusion_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
-    spawning_pool.set(item, components::Visual{glyph: '?', color: tcod::colors::Color{r: 130, g: 50, b: 130}});
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 130, g: 50, b: 130}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
     spawning_pool.set(item, components::Information{name: "scroll of confusion".to_string()});
@@ -233,7 +228,7 @@ fn add_confusion_scroll(pos: Point, spawning_pool: &mut components::SpawningPool
 
 fn add_lightning_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
-    spawning_pool.set(item, components::Visual{glyph: '?', color: tcod::colors::Color{r: 0, g: 150, b: 180}});
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 0, g: 150, b: 180}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
     spawning_pool.set(item, components::Information{name: "scroll of lightning".to_string()});
@@ -248,7 +243,7 @@ fn add_lightning_scroll(pos: Point, spawning_pool: &mut components::SpawningPool
 
 fn add_shield(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
-    spawning_pool.set(item, components::Visual{glyph: ')', color: colors::LIGHTEST_CYAN});
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: ')', color: colors::LIGHTEST_CYAN});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
     spawning_pool.set(item, components::Information{name: "buckler".to_string()});
@@ -266,7 +261,7 @@ fn add_shield(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entit
 
 fn add_healing_potion(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
-    spawning_pool.set(item, components::Visual{glyph: '!', color: colors::PINK});
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '!', color: colors::PINK});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
     spawning_pool.set(item, components::Information{name: "potion of healing".to_string()});

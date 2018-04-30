@@ -297,7 +297,7 @@ fn perform_open_door(action: &Action, game_state: &mut GameState, _reactions_act
         _ => unreachable!()
     };
 
-    game_state.spawning_pool.set(id, components::Visual{glyph: '-', color: colors::WHITE});
+    game_state.spawning_pool.set(id, components::Visual{always_display: true, glyph: '-', color: colors::WHITE});
     game_state.spawning_pool.set(id, components::Information{name: "open door".to_string()});
     game_state.spawning_pool.set(id, components::Door{opened: true});
     let flags = game_state.spawning_pool.get_mut::<components::Flags>(id).unwrap();

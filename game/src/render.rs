@@ -65,7 +65,7 @@ impl Animation {
     }
 }
 
-pub fn render(tcod: &mut Tcod, stats: components::Stats, game_state: &GameState, omnipotent: bool, delta: f64) -> Offscreen {
+pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool, delta: f64) -> Offscreen {
     tcod.time += delta;
     // aim to keep rendering speed at 60 fps
     /*
@@ -75,8 +75,8 @@ pub fn render(tcod: &mut Tcod, stats: components::Stats, game_state: &GameState,
     */
     let mut screen = Offscreen::new(tcod.root.width(), tcod.root.height());
     tcod.prev_time = tcod.time;
-    render_map(&mut tcod.con, game_state, omnipotent);
-    render_entities(&mut tcod.con, game_state, omnipotent);
+    render_map(&mut tcod.con, memory, game_state, omnipotent);
+    render_entities(&mut tcod.con, memory, game_state, omnipotent);
     render_messages(&mut tcod.messages, game_state);
     render_stats_panel(&mut tcod.stats_panel, stats, game_state);
     render_info_panel(&mut tcod.info_panel, game_state);
@@ -134,51 +134,84 @@ fn render_messages(con: &mut Offscreen, game_state: &GameState) {
     }
 }
 
-fn render_entities(con: &mut Offscreen, game_state: &GameState, omnipotent: bool) {
-    if let Some(memory) = game_state.spawning_pool.get::<components::MapMemory>(game_state.player) {
-        let ids = game_state.spawning_pool.get_all::<components::Visual>();
-        let mut to_draw: Vec<_> = ids.iter().filter(|d| {
-            let &(id, _) = *d;
-            if let Some(physics) = game_state.spawning_pool.get::<components::Physics>(id) {
-                if omnipotent {
+struct EntityRendingInfo {
+    pos: Point,
+    glyph: char,
+    color: colors::Color,
+    solid: bool,
+    always_display: bool,
+    visible: bool
+}
+
+fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool) {
+    let ids = game_state.spawning_pool.get_all::<components::Visual>();
+    let mut to_draw: Vec<EntityRendingInfo> = ids.iter()
+        .map(|&(id, _)| {
+            let visual = game_state.spawning_pool.get::<components::Visual>(id);
+            let physics = game_state.spawning_pool.get::<components::Physics>(id);
+            let flags = game_state.spawning_pool.get::<components::Flags>(id);
+            if physics.is_none() || visual.is_none() || flags.is_none() {
+                return None;
+            }
+            let pos = physics.unwrap().coord;
+            Some(EntityRendingInfo {
+                pos,
+                glyph: visual.unwrap().glyph,
+                color: visual.unwrap().color,
+                solid: flags.unwrap().solid,
+                always_display: visual.unwrap().always_display,
+                visible: memory.is_visible(pos.x, pos.y)
+            })
+        }).filter(|info| {
+            if let Some(info) = info {
+                if omnipotent || info.visible {
                     return true;
                 }
-                memory.is_visible(physics.coord.x, physics.coord.y)
-            } else {
-                return false;
+                if info.always_display && memory.is_explored(info.pos.x, info.pos.y) {
+                    return true;
+                }
             }
-        }).map(|&(id, _)| {
-            let visual = game_state.spawning_pool.get::<components::Visual>(id).unwrap();
-            let physics = game_state.spawning_pool.get::<components::Physics>(id).unwrap();
-            let flags = game_state.spawning_pool.get::<components::Flags>(id).unwrap();
-            (physics, visual, flags)
+            return false;
+        }).map(|info| {
+            info.unwrap()
         }).collect();
-        to_draw.sort_by(|a, b| {
-            (*a).2.solid.cmp(&b.2.solid)
-        });
-        for draw in to_draw {
-            con.set_default_foreground(draw.1.color);
-            con.put_char(draw.0.coord.x, draw.0.coord.y, draw.1.glyph, BackgroundFlag::None);
-        }
+    to_draw.sort_by(|a, b| {
+        a.solid.cmp(&b.solid)
+    });
+    for draw in to_draw {
+        let col = if draw.visible {
+            draw.color
+        } else {
+            shade_color(draw.color)
+        };
+        con.set_default_foreground(col);
+        con.put_char(draw.pos.x, draw.pos.y, draw.glyph, BackgroundFlag::None);
     }
 }
 
-fn render_map(con: &mut Offscreen, game_state: &GameState, omnipotent: bool) {
+fn shade_color(col: colors::Color) -> colors::Color {
+    col * colors::DARK_GREY
+}
+
+fn render_map(con: &mut Offscreen, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool) {
     con.clear();
-    if let Some(memory) = game_state.spawning_pool.get::<components::MapMemory>(game_state.player) {
-        for x in 0..game_state.map.dimensions.x {
-            for y in 0..game_state.map.dimensions.y {
-                let cell = game_state.map.get_cell(x, y);
+    for x in 0..game_state.map.dimensions.x {
+        for y in 0..game_state.map.dimensions.y {
+            let cell = game_state.map.get_cell(x, y);
 
-                let in_view = omnipotent || memory.is_visible(x, y);
-                let explored = memory.is_explored(x, y);
+            let in_view = omnipotent || memory.is_visible(x, y);
+            let explored = memory.is_explored(x, y);
 
-                if in_view || explored {
-                    let (glyph, color, background_color) = cell.get_render_info(in_view);
-                    con.set_default_foreground(color);
-                    con.put_char(x, y, glyph, BackgroundFlag::None);
-                    con.set_char_background(x, y, background_color, BackgroundFlag::Set);
-                }
+            if in_view || explored {
+                let (glyph, foreground_color, background_color) = cell.get_render_info();
+                let (foreground, background)= if in_view {
+                    (foreground_color, background_color)
+                } else {
+                    (shade_color(foreground_color), shade_color(background_color))
+                };
+                con.set_default_foreground(foreground);
+                con.put_char(x, y, glyph, BackgroundFlag::None);
+                con.set_char_background(x, y, background, BackgroundFlag::Set);
             }
         }
     }
@@ -210,7 +243,7 @@ fn render_info_panel(panel: &mut Offscreen, game_state: &GameState) {
     }
 }
 
-fn render_stats_panel(panel: &mut Offscreen, stats: components::Stats, game_state: &GameState) {
+fn render_stats_panel(panel: &mut Offscreen, stats: &components::Stats, game_state: &GameState) {
     panel.set_default_background(colors::BLACK);
     panel.set_default_foreground(colors::LIGHT_GREY);
     panel.print_frame(0, 0, STATS_PANEL_WIDTH, STATS_PANEL_HEIGHT, true, BackgroundFlag::None, Some("Stats"));

@@ -304,7 +304,7 @@ pub fn get_entity_position(entity: EntityId, game_state: &GameState) -> Option<P
 
 fn create_player(spawning_pool: &mut components::SpawningPool, width: i32, height: i32) -> EntityId {
     let player = spawning_pool.spawn_entity();
-    spawning_pool.set(player, components::Visual{glyph: '@', color: colors::WHITE});
+    spawning_pool.set(player, components::Visual{always_display: false, glyph: '@', color: colors::WHITE});
     spawning_pool.set(player, components::Physics{coord: (0,0).into()});
     spawning_pool.set(player, components::Controller{ai: components::AI::Player});
     spawning_pool.set(player, components::Information{name: "player".to_string()});

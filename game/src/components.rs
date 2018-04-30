@@ -9,6 +9,7 @@ use spawning_pool::storage::{Storage, VectorStorage, HashMapStorage};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Visual {
+    pub always_display: bool,
     pub glyph: char,
     pub color: colors::Color
 }

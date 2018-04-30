@@ -22,6 +22,7 @@ pub struct GameScreen {
     game_over: bool,
     omnipotent: bool,
     stats: Option<components::Stats>,
+    map_memory: Option<components::MapMemory>,
     screens: Vec<Box<Screen>>,
     input_command: Option<InputCommand>
 }
@@ -35,6 +36,7 @@ impl GameScreen {
             omnipotent: false,
             screens: vec![],
             stats: None,
+            map_memory: None,
             input_command: None,
         }
     }
@@ -55,13 +57,20 @@ impl Screen for GameScreen {
         } else {
             self.stats.clone()
         };
-        if let Some(stats) = stats {
-            let screen = render(tcod, stats.clone(), state, self.omnipotent, delta);
-            self.stats = Some(stats);
-            (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}))
+        let memory: Option<components::MapMemory> = if let Some(memory) = state.spawning_pool.force_get::<components::MapMemory>(state.player) {
+            Some(memory.clone())
         } else {
-            (ScreenResult::Stop, None)
+            self.map_memory.clone()
+        };
+        if let Some(stats) = stats {
+            if let Some(memory) = memory {
+                let screen = render(tcod, &stats, &memory, state, self.omnipotent, delta);
+                self.stats = Some(stats);
+                self.map_memory = Some(memory);
+                return (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}));
+            }
         }
+        (ScreenResult::Stop, None)
     }
 
     fn tick(&mut self, state: &mut GameState, _tcod: &mut render::Tcod, actions: &mut Vec<Action>) -> ScreenResult {
