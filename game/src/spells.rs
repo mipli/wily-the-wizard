@@ -2,7 +2,9 @@ use spawning_pool::{EntityId};
 use game::*;
 use actions::{Action, Command};
 use geo::*;
+use messages::*;
 use components;
+use utils;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Spells {
@@ -76,6 +78,14 @@ pub fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, s
         SpellTarget::Closest => get_closest_target(caster.unwrap(), state),
 
     };
+    if let Some(target) = target {
+        let actor_name = match caster {
+            Some(caster) => utils::get_entity_name(caster, &state.spawning_pool),
+            None => "Unknown".to_string()
+        };
+        let target_name = utils::get_entity_name(target, &state.spawning_pool);
+        state.messages.log(MessageLevel::Spell, format!("{} casts {} on {}!", actor_name, spell.name, target_name));
+    }
     match spell.kind {
         Spells::MagicMissile => {
             reaction_actions.push(Action{

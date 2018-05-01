@@ -103,9 +103,6 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
 
 fn perform_cast_spell(action: &Action, state: &mut GameState, reaction_actions: &mut Vec<Action>) {
     if let Command::CastSpell{ref spell} = action.command {
-        let actor_name = utils::get_actor_name(action, &state.spawning_pool);
-        let target_name = utils::get_target_name(action, &state.spawning_pool);
-        state.messages.log(MessageLevel::Spell, format!("{} casts {} on {}!", actor_name, spell.name, target_name));
         spells::cast(spell, action.actor, action.target, state, reaction_actions);
     }
 }
