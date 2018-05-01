@@ -119,7 +119,7 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
     for room in generated.rooms.iter().skip(1) {
         let entity = if rand::random::<bool>() {
             let c = thread_rng().gen_range(0, creatures.len());
-            create_creature(&creatures[c as usize], room.center(), spawning_pool)
+            create_creature(&creatures[c as usize], room.center(), width, height, spawning_pool)
         } else {
             add_item(room.center(), spawning_pool)
         };

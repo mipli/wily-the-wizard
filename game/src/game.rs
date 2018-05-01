@@ -99,11 +99,10 @@ enum ActionTickResult {
 
 impl Game {
     pub fn game_tick(&mut self, actions: Vec<Action>, animations: &mut Vec<render::Animation>) -> TickResult {
-        if !actions.is_empty() {
-            println!("actions: {:?}", actions);
-        }
         self.state.scheduler.tick(&self.state.spawning_pool);
-        self.update_fov();
+        if self.state.spawning_pool.get::<components::MapMemory>(self.state.scheduler.get_current()).is_some() {
+            self.update_fov();
+        }
         let actions = self.get_actions(actions);
         if let Some(mut actions) = actions {
             for action in actions.drain(..) {
@@ -165,16 +164,22 @@ impl Game {
             require_information = check_require_information(action);
             if !require_information {
                 let action_status = apply_rules(action, &self.state, &mut self.rejection_queue, &mut self.reaction_queue);
+                println!("action {:?}: {:?}", action_status, action);
                 match action_status {
                     ActionStatus::Accept => {
                         let action_result = perform_action(action, &mut self.state, &mut self.reaction_queue);
-                        performed_action = performed_action || match action_result {
-                            ActionResult::Performed{time} => {
-                                used_time += time;
-                                true
-                            },
-                            _ => false
-                        };
+                        if action_result == ActionResult::Failed {
+                            self.reaction_queue = vec![];
+                            performed_action = false;
+                        } else {
+                            performed_action = performed_action || match action_result {
+                                ActionResult::Performed{time} => {
+                                    used_time += time;
+                                    true
+                                },
+                                _ => false
+                            };
+                        }
                         if performed_action {
                             animate_action(action, animations, &self.state.spawning_pool);
                             if let Some(reaction) = self.reaction_queue.pop() {
@@ -185,6 +190,7 @@ impl Game {
                         }
                     }
                     ActionStatus::Reject => {
+                        self.reaction_queue = vec![];
                         self.action_queue = self.rejection_queue.drain(..).collect();
                         self.action_queue.reverse();
                     }
@@ -201,19 +207,25 @@ impl Game {
     }
 
     fn get_entity_actions(&mut self, actions: Vec<Action>) -> Option<Vec<Action>> {
-        if let Some(controller) = self.state.spawning_pool.get::<components::Controller>(self.state.scheduler.get_current()) {
-            return match controller.ai {
-                components::AI::Player => {
+        use components::*;
+        let ai = match self.state.spawning_pool.get::<Controller>(self.state.scheduler.get_current()) {
+            Some(controller) => Some(controller.ai),
+            None => None
+        };
+        if let Some(ai) = ai {
+            return match ai {
+                AI::Player => {
                     if !actions.is_empty() {
                         Some(actions)
                     } else {
                         None
                     }
                 },
-               components::AI::Basic => ai::perform_basic_ai(self.state.scheduler.get_current(), &self.state)
+               AI::Basic => ai::perform_basic_ai(self.state.scheduler.get_current(), &mut self.state),
+               AI::SpellCaster => ai::perform_spell_ai(self.state.scheduler.get_current(), &mut self.state),
             }
         } else {
-            panic!("SHOULD NOT BE HERE");
+            panic!("Trying to get entity actions on entity without controller");
         }
     }
 

@@ -24,10 +24,16 @@ pub struct Controller {
     pub ai: AI
 }
 
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AiMemory {
+    pub player_position: Option<Point>
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum AI {
     Player,
-    Basic
+    Basic,
+    SpellCaster
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -46,6 +52,11 @@ pub struct Stats {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SpellBook {
+    pub spells: Vec<spells::Spells>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Door { 
     pub opened: bool
 }
@@ -58,22 +69,22 @@ pub struct Information {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MapMemory {
-    pub map: Vec<bool>,
-    pub visible: Vec<bool>,
-    pub dimensions: Point
+    pub dimensions: Point,
+    explored: Vec<bool>,
+    visible: Vec<bool>,
 }
 
 impl MapMemory {
     pub fn new(width: i32, height: i32) -> Self {
         MapMemory {
             dimensions: (width, height).into(),
-            map: vec![false; (width*height) as usize],
+            explored: vec![false; (width*height) as usize],
             visible: vec![false; (width*height) as usize]
         }
     }
 
     pub fn reset(&mut self) {
-        self.map = vec![false; (self.dimensions.x * self.dimensions.y) as usize];
+        self.explored = vec![false; (self.dimensions.x * self.dimensions.y) as usize];
         self.visible = vec![false; (self.dimensions.x * self.dimensions.y) as usize];
     }
 
@@ -90,11 +101,11 @@ impl MapMemory {
     }
 
     pub fn is_explored(&self, x: i32, y: i32) -> bool {
-        self.map[(x + (y  * self.dimensions.x)) as usize]
+        self.explored[(x + (y  * self.dimensions.x)) as usize]
     }
 
     pub fn explore(&mut self, x: i32, y: i32) {
-        self.map[(x + (y  * self.dimensions.x)) as usize] = true;
+        self.explored[(x + (y  * self.dimensions.x)) as usize] = true;
     }
 }
 
@@ -166,6 +177,7 @@ create_spawning_pool!(
     (Visual, visual, VectorStorage),
     (Physics, physics, VectorStorage),
     (Controller, controller, HashMapStorage),
+    (AiMemory, ai_memory, HashMapStorage),
     (Stats, stats, HashMapStorage),
     (Door, door, HashMapStorage),
     (Information, information, HashMapStorage),
@@ -174,5 +186,6 @@ create_spawning_pool!(
     (Item, item, HashMapStorage),
     (Inventory, inventory, HashMapStorage),
     (Equipment, equipment, HashMapStorage),
-    (StatusEffects, status_effects, HashMapStorage)
+    (StatusEffects, status_effects, HashMapStorage),
+    (SpellBook, spell_book, HashMapStorage)
 );

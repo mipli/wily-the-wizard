@@ -8,6 +8,7 @@ use components;
 pub enum Spells {
     LightningStrike,
     Confusion,
+    MagicMissile,
     Heal
 }
 
@@ -22,17 +23,28 @@ pub struct Spell {
     pub name: String,
     pub kind: Spells,
     pub power: i32,
-    pub target: SpellTarget
+    pub target: SpellTarget,
+    pub range: i32
 }
 
 impl Spell {
     pub fn create(spl: Spells) -> Spell {
         match spl {
+            Spells::MagicMissile => {
+                Spell {
+                    name: "Magic Missile".to_string(),
+                    kind: Spells::MagicMissile,
+                    power: 2,
+                    range: 5,
+                    target: SpellTarget::Entity
+                }
+            },
             Spells::LightningStrike => {
                 Spell {
-                    name: "LightningStrike".to_string(),
+                    name: "Lightning Strike".to_string(),
                     kind: Spells::LightningStrike,
                     power: 10,
+                    range: 4,
                     target: SpellTarget::Entity
                 }
             },
@@ -41,6 +53,7 @@ impl Spell {
                     name: "Confusion".to_string(),
                     kind: Spells::Confusion,
                     power: 0,
+                    range: 5,
                     target: SpellTarget::Closest
                 }
             },
@@ -49,6 +62,7 @@ impl Spell {
                     name: "Heal".to_string(),
                     kind: Spells::Heal,
                     power: 5,
+                    range: 3,
                     target: SpellTarget::Entity
                 }
             }
@@ -63,6 +77,13 @@ pub fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, s
 
     };
     match spell.kind {
+        Spells::MagicMissile => {
+            reaction_actions.push(Action{
+                actor: caster,
+                target,
+                command: Command::TakeDamage{damage: spell.power}
+            });
+        },
         Spells::LightningStrike => {
             reaction_actions.push(Action{
                 actor: caster,

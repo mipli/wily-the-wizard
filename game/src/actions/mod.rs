@@ -74,11 +74,11 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
         },
         Command::Heal{..} => {
             perform_heal(action, game_state, reactions_actions);
-            ActionResult::Performed{time: 100}
+            ActionResult::Performed{time: 0}
         },
         Command::LightningStrike{..} => {
             perform_lightning_strike(action, game_state, reactions_actions);
-            ActionResult::Performed{time: 100}
+            ActionResult::Performed{time: 0}
         },
         Command::Confuse => {
             if perform_confuse(action, game_state, reactions_actions) {
@@ -89,7 +89,7 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
         },
         Command::CastSpell{..} => {
             perform_cast_spell(action, game_state, reactions_actions);
-            ActionResult::Performed{time: 0}
+            ActionResult::Performed{time: 100}
         },
         Command::DestroyItem{..} => {
             perform_destroy_item(action, game_state, reactions_actions);
@@ -103,7 +103,9 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
 
 fn perform_cast_spell(action: &Action, state: &mut GameState, reaction_actions: &mut Vec<Action>) {
     if let Command::CastSpell{ref spell} = action.command {
-        println!("Casting {}: {:?} > {:?}", spell.name, action.actor, action.target);
+        let actor_name = utils::get_actor_name(action, &state.spawning_pool);
+        let target_name = utils::get_target_name(action, &state.spawning_pool);
+        state.messages.log(MessageLevel::Spell, format!("{} casts {} on {}!", actor_name, spell.name, target_name));
         spells::cast(spell, action.actor, action.target, state, reaction_actions);
     }
 }

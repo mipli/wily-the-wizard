@@ -116,11 +116,12 @@ pub struct SingleTargetScreen {
     target_index: usize,
     target_id: Option<EntityId>,
     origin: Point,
+    range: i32,
     callback: Box<Fn(EntityId, &mut GameState, &mut Vec<Action>)>
 }
 
 impl SingleTargetScreen {
-    pub fn new(origin: Point, state: &GameState, callback: Box<Fn(EntityId, &mut GameState, &mut Vec<Action>)>) -> Self {
+    pub fn new(origin: Point, range: i32, state: &GameState, callback: Box<Fn(EntityId, &mut GameState, &mut Vec<Action>)>) -> Self {
         let mut me = SingleTargetScreen {
             exit: false,
             entities: vec![],
@@ -128,6 +129,7 @@ impl SingleTargetScreen {
             target_index: 0,
             target_id: None,
             target: None,
+            range,
             origin,
             callback
         };
@@ -136,7 +138,7 @@ impl SingleTargetScreen {
     }
 
     fn init(&mut self, state: &GameState) {
-        let ents = state.spatial_table.get_by_proximity(self.origin, 10);
+        let ents = state.spatial_table.get_by_proximity(self.origin, self.range);
         if let Some(map_memory) = state.spawning_pool.get::<components::MapMemory>(state.player) {
             self.entities = ents.iter()
                 .filter(|(pos, _)| map_memory.is_visible(pos.x, pos.y))
@@ -152,6 +154,8 @@ impl SingleTargetScreen {
                 self.target = Some(physics.coord);
                 self.target_id = Some(self.entities[self.target_index]);
             }
+        } else {
+            self.exit = true;
         }
     }
 }

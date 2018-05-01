@@ -115,6 +115,8 @@ fn run_game(tcod: &mut Tcod) {
         }
 
         manager.render(t_delta, &mut game.state, &game.fov, tcod);
+        manager.add_screens(&mut game.state);
+        manager.clear_screens(&mut game.state);
 
         match tick_result {
             TickResult::Passed => {
@@ -122,9 +124,14 @@ fn run_game(tcod: &mut Tcod) {
             },
             TickResult::Wait(WaitResult::Wait) => {},
             TickResult::Wait(WaitResult::RequireTarget{action}) => {
+                let range = match action.command {
+                    Command::CastSpell{ref spell} => spell.range,
+                    _ => 10
+                };
                 if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
                     manager.add_screen(Box::new(screens::SingleTargetScreen::new(
                         physics.coord,
+                        range,
                         &game.state,
                         Box::new(move |e, _state, actions| {
                             let mut act = action.clone();
@@ -136,8 +143,6 @@ fn run_game(tcod: &mut Tcod) {
             }
         }
 
-        manager.add_screens(&mut game.state);
-        manager.clear_screens(&mut game.state);
     }
 }
 

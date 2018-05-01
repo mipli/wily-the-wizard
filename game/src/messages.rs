@@ -6,6 +6,7 @@ pub type Messages = Vec<(String, Color)>;
 
 pub enum MessageLevel {
     Info,
+    Spell,
     Important
 }
 
@@ -26,6 +27,7 @@ impl MessageLog for Messages {
         match level {
             MessageLevel::Info => self.add(message, colors::WHITE),
             MessageLevel::Important => self.add(message, colors::RED),
+            MessageLevel::Spell => self.add(message, colors::SKY),
         }
     }
 }

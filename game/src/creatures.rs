@@ -5,6 +5,7 @@ use tcod::colors;
 use spawning_pool::{EntityId};
 use components;
 use geo::*;
+use spells;
 
 #[derive(Debug)]
 pub struct CreatureData {
@@ -13,7 +14,8 @@ pub struct CreatureData {
     pub color: colors::Color,
     pub health: i32,
     pub strength: i32,
-    pub defense: i32
+    pub defense: i32,
+    pub ai: components::AI
 }
 
 pub fn load_creatures() -> Vec<CreatureData> {
@@ -26,6 +28,11 @@ pub fn load_creatures() -> Vec<CreatureData> {
         for base_docs in docs[0]["Base"].as_vec().unwrap() {
             let base = base_docs.as_hash().unwrap();
             for (_, data) in base.iter() {
+                let ai = match data["ai"].as_str().unwrap() {
+                    "basic" => components::AI::Basic,
+                    "spell caster" => components::AI::SpellCaster,
+                    _ => unreachable!()
+                };
                 creatures.push(CreatureData{
                     name: data["name"].as_str().unwrap().to_string(),
                     glyph: data["glyph"].as_str().unwrap().chars().next().unwrap(),
@@ -33,6 +40,7 @@ pub fn load_creatures() -> Vec<CreatureData> {
                     health: data["health"].as_i64().unwrap() as i32,
                     strength: data["strength"].as_i64().unwrap() as i32,
                     defense: data["defense"].as_i64().unwrap() as i32,
+                    ai
                 });
             }
         }
@@ -47,7 +55,7 @@ fn get_color(name: &str) -> colors::Color {
     }
 }
 
-pub fn create_creature(data: &CreatureData, pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
+pub fn create_creature(data: &CreatureData, pos: Point, width: i32, height: i32, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let creature = spawning_pool.spawn_entity();
     spawning_pool.set(creature, components::Visual{
         always_display: false,
@@ -62,7 +70,7 @@ pub fn create_creature(data: &CreatureData, pos: Point, spawning_pool: &mut comp
         solid: true
     });
     spawning_pool.set(creature, components::Controller{
-        ai: components::AI::Basic
+        ai: data.ai
     });
     spawning_pool.set(creature, components::Information{
         name: data.name.to_string()
@@ -74,5 +82,12 @@ pub fn create_creature(data: &CreatureData, pos: Point, spawning_pool: &mut comp
         strength: data.strength,
         defense: data.defense
     });
+    spawning_pool.set(creature, components::MapMemory::new(width, height));
+    spawning_pool.set(creature, components::AiMemory{player_position: None});
+    if data.ai == components::AI::SpellCaster {
+        spawning_pool.set(creature, components::SpellBook{
+            spells: vec![spells::Spells::MagicMissile]
+        });
+    }
     creature
 }

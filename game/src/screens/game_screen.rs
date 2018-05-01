@@ -1,4 +1,5 @@
 use tcod::input::{KeyCode};
+use spells;
 
 use utils;
 use components;
@@ -6,6 +7,7 @@ use components;
 use screens::*;
 
 enum InputCommand {
+    SelfHeal,
     PickUpItem,
     ShowInventoryUse,
     ShowInventoryDrop,
@@ -82,6 +84,15 @@ impl Screen for GameScreen {
                     command: command.clone()
                 });
             },
+            Some(InputCommand::SelfHeal) => {
+                actions.push(Action{
+                    actor: Some(state.player),
+                    target: Some(state.player),
+                    command: Command::CastSpell{
+                        spell: spells::Spell::create(spells::Spells::Heal)
+                    }
+                });
+            }
             Some(InputCommand::Quit) => {
                 self.exit = true;
             },
@@ -182,6 +193,9 @@ impl Screen for GameScreen {
             },
             Key { printable: '0', .. } => {
                 Some(InputCommand::ToggleOmnipotence)
+            },
+            Key { printable: '9', .. } => {
+                Some(InputCommand::SelfHeal)
             },
             _ => None
         };

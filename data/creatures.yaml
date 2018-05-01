@@ -6,6 +6,7 @@ Base:
       health: 5
       strength: 3
       defense: 1
+      ai: "basic"
 
   - Orc:
       name: "orc"
@@ -14,3 +15,13 @@ Base:
       health: 10 
       strength: 5
       defense: 1
+      ai: "basic"
+
+  - Imp:
+      name: "imp"
+      glyph: "i"
+      color: "light red"
+      health: 3
+      strength: 1
+      defense: 1
+      ai: "spell caster"

@@ -179,7 +179,7 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
         a.solid.cmp(&b.solid)
     });
     for draw in to_draw {
-        let col = if draw.visible {
+        let col = if omnipotent || draw.visible {
             draw.color
         } else {
             shade_color(draw.color)
@@ -204,7 +204,7 @@ fn render_map(con: &mut Offscreen, memory: &components::MapMemory, game_state: &
 
             if in_view || explored {
                 let (glyph, foreground_color, background_color) = cell.get_render_info();
-                let (foreground, background)= if in_view {
+                let (foreground, background)= if omnipotent || in_view {
                     (foreground_color, background_color)
                 } else {
                     (shade_color(foreground_color), shade_color(background_color))
