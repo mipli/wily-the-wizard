@@ -167,7 +167,7 @@ impl Game {
                 println!("action {:?}: {:?}", action_status, action);
                 match action_status {
                     ActionStatus::Accept => {
-                        let action_result = perform_action(action, &mut self.state, &mut self.reaction_queue);
+                        let action_result = perform_action(action, &mut self.state);
                         if action_result == ActionResult::Failed {
                             self.reaction_queue = vec![];
                             performed_action = false;

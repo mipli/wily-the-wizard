@@ -1,4 +1,3 @@
-use std::cmp::max;
 use inflector::Inflector;
 
 use std::cmp::min;
@@ -13,7 +12,6 @@ use utils;
 use messages::*;
 pub use self::definitions::*;
 use self::items::*;
-use spells;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ActionResult {
@@ -21,7 +19,7 @@ pub enum ActionResult {
     Performed{time: i32}
 }
 
-pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_actions: &mut Vec<Action>) -> ActionResult {
+pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResult {
     game_state.spatial_table.update(action, &mut game_state.spawning_pool);
     match action.command {
         Command::Wait | Command::PreKillEntity => ActionResult::Performed{time: 100},
@@ -31,7 +29,7 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
             ActionResult::Performed{time: 100}
         },
         Command::AttackEntity{..} => {
-            perform_attack_entity(action, game_state, reactions_actions);
+            // perform_attack_entity(action, game_state, reactions_actions);
             ActionResult::Performed{time: 100}
         },
         Command::WalkDirection{dir} => {
@@ -41,58 +39,53 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
             ActionResult::Performed{time: 100}
         },
         Command::TakeDamage{..} => {
-            perform_take_damage(action, game_state, reactions_actions);
+            perform_take_damage(action, game_state);
             ActionResult::Performed{time: 0}
         },
         Command::OpenDoor{..} => {
-            perform_open_door(action, game_state, reactions_actions);
+            perform_open_door(action, game_state);
             ActionResult::Performed{time: 100}
         },
         Command::KillEntity => {
-            perform_kill_entity(action, game_state, reactions_actions);
+            perform_kill_entity(action, game_state);
             ActionResult::Performed{time: 0}
         },
         Command::PickUpItem{..} => {
-            perform_pick_up_item(action, game_state, reactions_actions);
+            perform_pick_up_item(action, game_state);
             ActionResult::Performed{time: 100}
         },
         Command::UseItem{..} => {
-            perform_use_item(action, game_state, reactions_actions);
+            perform_use_item(action, game_state);
             ActionResult::Performed{time: 0}
         },
         Command::EquipItem{..} => {
-            perform_equip_item(action, game_state, reactions_actions);
+            perform_equip_item(action, game_state);
             ActionResult::Performed{time: 50}
         },
         Command::UnequipItem{..} => {
-            perform_unequip_item(action, game_state, reactions_actions);
+            perform_unequip_item(action, game_state);
             ActionResult::Performed{time: 0}
         },
         Command::DropItem{..} => {
-            perform_drop_item(action, game_state, reactions_actions);
+            perform_drop_item(action, game_state);
             ActionResult::Performed{time: 0}
         },
         Command::Heal{..} => {
-            perform_heal(action, game_state, reactions_actions);
-            ActionResult::Performed{time: 0}
-        },
-        Command::LightningStrike{..} => {
-            perform_lightning_strike(action, game_state, reactions_actions);
+            perform_heal(action, game_state);
             ActionResult::Performed{time: 0}
         },
         Command::Confuse => {
-            if perform_confuse(action, game_state, reactions_actions) {
+            if perform_confuse(action, game_state) {
                 ActionResult::Performed{time: 100}
             } else {
                 ActionResult::Failed
             }
         },
         Command::CastSpell{..} => {
-            perform_cast_spell(action, game_state, reactions_actions);
             ActionResult::Performed{time: 100}
         },
         Command::DestroyItem{..} => {
-            perform_destroy_item(action, game_state, reactions_actions);
+            perform_destroy_item(action, game_state);
             ActionResult::Performed{time: 0}
         },
         _ => {
@@ -101,13 +94,7 @@ pub fn perform_action(action: &Action, game_state: &mut GameState, reactions_act
     }
 }
 
-fn perform_cast_spell(action: &Action, state: &mut GameState, reaction_actions: &mut Vec<Action>) {
-    if let Command::CastSpell{ref spell} = action.command {
-        spells::cast(spell, action.actor, action.target, state, reaction_actions);
-    }
-}
-
-fn perform_confuse(action: &Action, game_state: &mut GameState, _reaction_actions: &mut Vec<Action>) -> bool {
+fn perform_confuse(action: &Action, game_state: &mut GameState) -> bool {
     let performed = if let Some(target) = action.target {
         if let Some(status_effects) = game_state.spawning_pool.get_mut::<components::StatusEffects>(target) {
             status_effects.confused = Some(5);
@@ -132,14 +119,7 @@ fn perform_confuse(action: &Action, game_state: &mut GameState, _reaction_action
     performed
 }
 
-fn perform_lightning_strike(action: &Action, _game_state: &mut GameState, reaction_actions: &mut Vec<Action>) {
-    reaction_actions.push(Action{
-        command: Command::TakeDamage{damage: 10},
-        ..*action
-    });
-}
-
-fn perform_heal(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_heal(action: &Action, game_state: &mut GameState) {
     let amount = match action.command {
         Command::Heal{amount} => amount,
         _ => 0
@@ -160,7 +140,7 @@ fn perform_heal(action: &Action, game_state: &mut GameState, _reactions_actions:
     }
 }
 
-fn perform_drop_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_drop_item(action: &Action, game_state: &mut GameState) {
     let item_id = match action.command {
         Command::DropItem{item_id} => Some(item_id),
         _ => None
@@ -177,7 +157,7 @@ fn perform_drop_item(action: &Action, game_state: &mut GameState, _reactions_act
     }
 }
 
-fn perform_equip_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_equip_item(action: &Action, game_state: &mut GameState) {
     if let Command::EquipItem{item_id} = action.command {
         let mut performed = false;
         let slot = match game_state.spawning_pool.get::<components::Item>(item_id) {
@@ -198,7 +178,7 @@ fn perform_equip_item(action: &Action, game_state: &mut GameState, _reactions_ac
     }
 }
 
-fn perform_unequip_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_unequip_item(action: &Action, game_state: &mut GameState) {
     if let Command::UnequipItem{item_id} = action.command {
         let mut performed = false;
         let slot = match game_state.spawning_pool.get::<components::Item>(item_id) {
@@ -219,13 +199,13 @@ fn perform_unequip_item(action: &Action, game_state: &mut GameState, _reactions_
     }
 }
 
-fn perform_destroy_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_destroy_item(action: &Action, game_state: &mut GameState) {
     if let Command::DestroyItem{item_id} = action.command {
         game_state.spawning_pool.remove_entity(item_id);
     }
 }
 
-fn perform_pick_up_item(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_pick_up_item(action: &Action, game_state: &mut GameState) {
     if let Command::PickUpItem{item_id} = action.command {
         let mut picked = false;
         if let Some(mut inventory) = game_state.spawning_pool.get_mut::<components::Inventory>(action.actor.unwrap()) {
@@ -242,7 +222,7 @@ fn perform_pick_up_item(action: &Action, game_state: &mut GameState, _reactions_
 
 }
 
-fn perform_kill_entity(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_kill_entity(action: &Action, game_state: &mut GameState) {
     let name = utils::get_actor_name(action, &game_state.spawning_pool);
     if action.actor.unwrap() == game_state.player {
         game_state.messages.log(MessageLevel::Important, format!("The {} has died!", name));
@@ -252,7 +232,7 @@ fn perform_kill_entity(action: &Action, game_state: &mut GameState, _reactions_a
     game_state.spawning_pool.remove_entity(action.actor.unwrap());
 }
 
-fn perform_take_damage(action: &Action, game_state: &mut GameState, reactions_actions: &mut Vec<Action>) {
+fn perform_take_damage(action: &Action, game_state: &mut GameState) {
     let damage = match action.command {
         Command::TakeDamage{damage} => {
             damage
@@ -260,37 +240,23 @@ fn perform_take_damage(action: &Action, game_state: &mut GameState, reactions_ac
         _ => unreachable!()
     };
 
-    let mut performed = false;
-
     if let Some(target) = action.target {
         if let Some(mut stats) = game_state.spawning_pool.get_mut::<components::Stats>(target) {
             stats.health -= damage;
-
-            if stats.health <= 0 {
-                reactions_actions.push(Action{
-                    actor: Some(target),
-                    target: None,
-                    command: Command::KillEntity
-                });
-            }
-
-            performed = true;
         }
     }
 
-    if performed {
-        let attacker_name = utils::get_actor_name(action, &game_state.spawning_pool);
-        let target_name = utils::get_target_name(action, &game_state.spawning_pool);
+    let attacker_name = utils::get_actor_name(action, &game_state.spawning_pool);
+    let target_name = utils::get_target_name(action, &game_state.spawning_pool);
 
-        if action.target.unwrap() == game_state.player {
-            game_state.messages.log(MessageLevel::Important, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
-        } else {
-            game_state.messages.log(MessageLevel::Info, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
-        };
-    }
+    if action.target.unwrap() == game_state.player {
+        game_state.messages.log(MessageLevel::Important, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
+    } else {
+        game_state.messages.log(MessageLevel::Info, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
+    };
 }
 
-fn perform_open_door(action: &Action, game_state: &mut GameState, _reactions_actions: &mut Vec<Action>) {
+fn perform_open_door(action: &Action, game_state: &mut GameState) {
     let id = match action.command {
         Command::OpenDoor{entity} => entity,
         _ => unreachable!()
@@ -304,6 +270,7 @@ fn perform_open_door(action: &Action, game_state: &mut GameState, _reactions_act
     flags.block_sight = false;
 }
 
+/*
 fn perform_attack_entity(action: &Action, game_state: &GameState, reaction_actions: &mut Vec<Action>) {
     if let Command::AttackEntity{bonus_strength, bonus_defense} = action.command {
         if let Some(actor) = action.actor {
@@ -332,3 +299,4 @@ fn perform_attack_entity(action: &Action, game_state: &GameState, reaction_actio
         }
     }
 }
+*/

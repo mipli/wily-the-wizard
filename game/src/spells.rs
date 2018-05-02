@@ -1,11 +1,3 @@
-use spawning_pool::{EntityId};
-use game::*;
-use actions::{Action, Command};
-use geo::*;
-use messages::*;
-use components;
-use utils;
-
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Spells {
     LightningStrike,
@@ -72,6 +64,7 @@ impl Spell {
     }
 }
 
+/*
 pub fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state: &mut GameState, reaction_actions: &mut Vec<Action>) {
     let target = match spell.target {
         SpellTarget::Entity => target,
@@ -141,43 +134,5 @@ fn get_closest_target(caster: EntityId, state: &mut GameState) -> Option<EntityI
         }
     }
     None
-}
-
-
-/*
-pub fn cast(spell: Spell, caster: EntityId, target: Option<EntityId>, state: &mut GameState, reaction_actions: &mut Vec<Action>) -> bool {
-    match spell.target {
-        SpellTarget::Entity => cast_on_entity(spell, caster, target, state, reaction_actions)
-    }
-}
-
-fn cast_on_entity(spell: Spell, caster: EntityId, target: Option<EntityId>, state: &mut GameState, reaction_actions: &mut Vec<Action>) -> bool {
-    let pos = match state.spawning_pool.get::<components::Physics>(caster) {
-        Some(physics) => Some(physics.coord),
-        None => None
-    };
-    if let Some(pos) = pos {
-        let circles: Vec<(Point, EntityId)> = state.spatial_table.in_circle(pos, 5);
-        let mut entities: Vec<(EntityId, i32)> = circles.iter().map(|&(_, id)| {
-            let physics = state.spawning_pool.get::<components::Physics>(id).unwrap();
-            let delta = pos.distance(physics.coord) as i32;
-            (id, delta)
-        }).filter(|&(ref id, _)| {
-            let stats = state.spawning_pool.get::<components::Stats>(*id);
-            stats.is_some()
-        }).collect();
-        if entities.len() > 1 {
-            entities.sort_by(|a, b| {
-                a.1.cmp(&b.1)
-            });
-            reaction_actions.push(Action{
-                actor: Some(caster),
-                target: Some(entities[1].0),
-                command: Command::LightningStrike{damage: spell.damage}
-            });
-            return true;
-        }
-    }
-    false
 }
 */

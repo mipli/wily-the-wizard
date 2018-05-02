@@ -12,6 +12,13 @@ pub fn perform_basic_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
     if let Some(entity_position) = get_entity_position(actor, state) {
         let player_position = get_player_position(actor, state);
         if let Some(player_position) = player_position {
+            if player_position == entity_position {
+                return Some(vec![Action {
+                    actor: Some(actor),
+                    target: None,
+                    command: Command::Wait
+                }]);
+            }
             if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
                 mem.player_position = Some(player_position);
             }
@@ -47,6 +54,16 @@ pub fn perform_spell_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
     if let Some(entity_position) = get_entity_position(actor, state) {
         let player_position = get_player_position(actor, state);
         if let Some(player_position) = player_position {
+            if player_position == entity_position {
+                if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
+                    mem.player_position = None;
+                }
+                return Some(vec![Action {
+                    actor: Some(actor),
+                    target: None,
+                    command: Command::Wait
+                }]);
+            }
             if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
                 mem.player_position = Some(player_position);
             }
