@@ -4,7 +4,7 @@ use actions::*;
 use game::*;
 use components;
 
-pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {
         Command::WalkDirection{dir} => {
             if let Some(actor) = action.actor {
@@ -14,7 +14,7 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                 };
 
                 if !solid {
-                    return (ActionStatus::Accept, RuleStatus::Continue);
+                    return ActionStatus::Accept;
                 }
 
                 let pos = match game_state.spawning_pool.get::<components::Physics>(actor) {
@@ -25,7 +25,7 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                 let new_pos = pos + dir;
                 let cell = game_state.map.get_cell(new_pos.x, new_pos.y);
                 if cell.tile_type == TileType::Wall {
-                    return (ActionStatus::Reject, RuleStatus::Stop);
+                    return ActionStatus::Reject;
                 }
 
                 if let Some(cell) = game_state.spatial_table.get(new_pos) {
@@ -64,12 +64,12 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                                 });
                             }
                         }
-                        return (ActionStatus::Reject, RuleStatus::Stop);
+                        return ActionStatus::Reject;
                     }
                 }
             }
-            (ActionStatus::Accept, RuleStatus::Continue)
+            ActionStatus::Accept
         },
-        _ => (ActionStatus::Accept, RuleStatus::Continue)
+        _ => ActionStatus::Accept
     }
 }

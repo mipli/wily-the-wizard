@@ -8,27 +8,27 @@ use spells::*;
 
 use rules::definitions::*;
 
-pub fn lightning_strike(action: &mut Action, _state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn lightning_strike(action: &mut Action, _state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let  Command::LightningStrike{damage} = action.command {
         reaction_actions.push(Action{
             command: Command::TakeDamage{damage},
             ..*action
         });
     }
-    (ActionStatus::Accept, RuleStatus::Continue)
+    ActionStatus::Accept
 }
 
-pub fn validate_spell(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn validate_spell(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> ActionStatus {
     use components::*;
     if let Command::CastSpell{ref spell} = action.command {
         if let Some(actor) = action.actor {
             if state.spawning_pool.get::<Physics>(actor).is_none() {
-               return  (ActionStatus::Reject, RuleStatus::Stop);
+               return  ActionStatus::Reject;
             }
         }
         if let Some(target) = action.target {
             if state.spawning_pool.get::<Physics>(target).is_none() {
-               return  (ActionStatus::Reject, RuleStatus::Stop);
+               return  ActionStatus::Reject;
             }
         }
         if let Some(actor) = action.actor {
@@ -37,24 +37,24 @@ pub fn validate_spell(action: &mut Action, state: &GameState, _rejected_actions:
                 let target_position = utils::get_position(target, &state.spawning_pool).unwrap();
                 let distance = actor_position.distance(target_position);
                 if distance > spell.range as f32 {
-                    return  (ActionStatus::Reject, RuleStatus::Stop);
+                    return  ActionStatus::Reject;
                 }
             }
         }
     }
-    (ActionStatus::Accept, RuleStatus::Continue)
+    ActionStatus::Accept
 }
 
-pub fn cast_spell(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn cast_spell(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {
         Command::CastSpell{ref spell} => {
             if cast(spell, action.actor, action.target, state, reaction_actions) {
-                (ActionStatus::Accept, RuleStatus::Continue)
+                ActionStatus::Accept
             } else {
-                (ActionStatus::Reject, RuleStatus::Stop)
+                ActionStatus::Reject
             }
         },
-        _ => (ActionStatus::Accept, RuleStatus::Continue)
+        _ => ActionStatus::Accept
     }
 }
 

@@ -5,7 +5,7 @@ use game::*;
 use actions::*;
 use components;
 
-pub fn attack(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn attack(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let Command::AttackEntity{bonus_strength, bonus_defense} = action.command {
         if let Some(actor) = action.actor {
             let target_id = match action.target {
@@ -32,10 +32,10 @@ pub fn attack(action: &mut Action, state: &GameState, _rejected_actions: &mut Ve
             });
         }
     }
-    (ActionStatus::Accept, RuleStatus::Continue)
+    ActionStatus::Accept
 }
 
-pub fn take_damage(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn take_damage(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let Command::TakeDamage{damage} = action.command {
         if let Some(target) = action.target {
             if let Some(mut stats) = state.spawning_pool.get::<components::Stats>(target) {
@@ -48,9 +48,9 @@ pub fn take_damage(action: &mut Action, state: &GameState, _rejected_actions: &m
                     });
                 }
             } else {
-                return (ActionStatus::Reject, RuleStatus::Stop);
+                return ActionStatus::Reject;
             }
         }
     }
-    (ActionStatus::Accept, RuleStatus::Continue)
+    ActionStatus::Accept
 }

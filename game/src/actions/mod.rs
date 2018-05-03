@@ -81,7 +81,16 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
                 ActionResult::Failed
             }
         },
-        Command::CastSpell{..} => {
+        Command::CastSpell{ref spell} => {
+            let actor = utils::get_actor_name(action, &game_state.spawning_pool);
+            let msg = match action.target {
+                Some(_) => {
+                    let target = utils::get_target_name(action, &game_state.spawning_pool);
+                    format!("The {} is casting {} on {} ", actor, spell.name, target)
+                },
+                None => format!("The {} is casting {}", actor, spell.name)
+            };
+            game_state.messages.log(MessageLevel::Spell, msg);
             ActionResult::Performed{time: 100}
         },
         Command::DestroyItem{..} => {

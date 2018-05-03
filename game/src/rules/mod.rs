@@ -25,9 +25,8 @@ pub fn apply_rules(action: &mut Action, game_state: &GameState, rejected_actions
     }
     let mut action_status = ActionStatus::Accept;  
     for rule in &rules {
-        let (s, rule_status) = rule(action, game_state, rejected_actions, reaction_actions);
-        action_status = s;
-        if rule_status == RuleStatus::Stop || action_status == ActionStatus::Reject {
+        action_status = rule(action, game_state, rejected_actions, reaction_actions);
+        if action_status == ActionStatus::Reject {
             break;
         }
     }

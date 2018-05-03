@@ -164,7 +164,6 @@ impl Game {
             require_information = check_require_information(action);
             if !require_information {
                 let action_status = apply_rules(action, &self.state, &mut self.rejection_queue, &mut self.reaction_queue);
-                println!("action {:?}: {:?}", action_status, action);
                 match action_status {
                     ActionStatus::Accept => {
                         let action_result = perform_action(action, &mut self.state);

@@ -6,13 +6,13 @@ use spells;
 
 use rules::definitions::*;
 
-pub fn use_item(action: &mut Action, game_state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn use_item(action: &mut Action, game_state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {
         Command::UseItem{item_id} => {
             let item_comp = game_state.spawning_pool.get::<components::Item>(item_id);
 
             if item_comp.is_none() {
-                return (ActionStatus::Reject, RuleStatus::Stop);
+                return ActionStatus::Reject;
             }
 
             if let Some(item) = game_state.spawning_pool.get::<components::Item>(item_id) {
@@ -37,14 +37,13 @@ pub fn use_item(action: &mut Action, game_state: &GameState, _rejected_actions: 
                     }
                 }
             }
-
-            (ActionStatus::Accept, RuleStatus::Continue)
+            ActionStatus::Accept
         },
-        _ => (ActionStatus::Accept, RuleStatus::Continue)
+        _ => ActionStatus::Accept
     }
 }
 
-pub fn apply_equipment_bonus(action: &mut Action, game_state: &GameState, _rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> (ActionStatus, RuleStatus) {
+pub fn apply_equipment_bonus(action: &mut Action, game_state: &GameState, _rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {
         Command::AttackEntity{..} => {
             if let Some(actor) = action.actor {
@@ -53,12 +52,12 @@ pub fn apply_equipment_bonus(action: &mut Action, game_state: &GameState, _rejec
                         bonus_strength: utils::get_strength_bonus(actor, &game_state.spawning_pool),
                         bonus_defense: utils::get_defense_bonus(target, &game_state.spawning_pool)
                     };
-                    return (ActionStatus::Accept, RuleStatus::Continue);
+                    return ActionStatus::Accept;
                 }
             }
-            (ActionStatus::Accept, RuleStatus::Continue)
+            ActionStatus::Accept
         },
-        _ => (ActionStatus::Accept, RuleStatus::Continue)
+        _ => ActionStatus::Accept
     }
 }
 
