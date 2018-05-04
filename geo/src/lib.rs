@@ -12,7 +12,7 @@ pub fn get_neigbours(x: i32, y: i32, only_cardinal: bool) -> Vec<Point> {
     let dirs = if only_cardinal {
         vec![(0, -1), (-1, 0), (1, 0), (0, 1)]
     } else {
-        vec![(1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
+        vec![(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
     };
 
     for dir in dirs {

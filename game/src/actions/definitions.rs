@@ -25,7 +25,7 @@ pub enum Command {
     CastSpell{spell: spells::Spell},
     DropItem{item_id: EntityId},
     Heal{amount: i32},
-    PreKillEntity,
+    SpawnFog{pos: Point},
     KillEntity,
     PickUpItem{item_id: EntityId},
     LightningStrike{damage: i32},

@@ -2,7 +2,6 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
 
-use utils;
 use spatial::*;
 use geo::*;
 use map::*;
@@ -48,7 +47,7 @@ pub fn path(start: Point, goal: Point, grid: &SpatialTable, map: &Map) -> Option
             None => unreachable!()
         };
 
-        for neighbour in utils::get_neigbours(position.x, position.y) {
+        for neighbour in get_neigbours(position.x, position.y, false) {
             if neighbour == goal {
                 from.insert(neighbour, position);
                 found = true;

@@ -4,7 +4,6 @@ use std::cmp::{min, max};
 
 use components;
 use geo::*;
-use actions::*;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct SpatialCell {
@@ -54,95 +53,6 @@ impl SpatialTable {
 
     pub fn get_mut(&mut self, pos: Point) -> Option<&mut SpatialCell> {
         self.cells.get_mut((pos.x + (pos.y * self.width)) as usize)
-    }
-
-    pub fn update(&mut self, action: &Action, spawning_pool: &mut components::SpawningPool) {
-        self.dirty = match action.command {
-            Command::WalkDirection{dir} => {
-                let coord = match spawning_pool.get::<components::Physics>(action.actor.unwrap()) {
-                    Some(physics) => Some(physics.coord),
-                    None => None
-                };
-                match coord {
-                    Some(coord) => {
-                        self.cells[(coord.x + (coord.y * self.width)) as usize].remove_entity(action.actor.unwrap(), spawning_pool);
-
-                        let new_pos = coord + dir;
-                        self.cells[(new_pos.x + (new_pos.y * self.width)) as usize].add_entity(action.actor.unwrap(), spawning_pool);
-                        true
-                    },
-                    None => false
-                }
-            },
-            Command::KillEntity => {
-                let coord = match spawning_pool.get::<components::Physics>(action.actor.unwrap()) {
-                    Some(physics) => Some(physics.coord),
-                    None => None
-                };
-                match coord {
-                    Some(coord) => {
-                        match self.get_mut(coord) {
-                            Some(cell) => {
-                                cell.remove_entity(action.actor.unwrap(), spawning_pool);
-                                true
-                            },
-                            None => false
-                        }
-                    },
-                    None => false
-                }
-            },
-            Command::OpenDoor{entity} => {
-                let coord = match spawning_pool.get::<components::Physics>(entity) {
-                    Some(physics) => Some(physics.coord),
-                    None => None
-                };
-                match coord {
-                    Some(coord) => {
-                        match self.get_mut(coord) {
-                            Some(cell) => {
-                                cell.reduce_solid_count();
-                                cell.reduce_opaque_count();
-                                true
-                            }
-                            None => false
-                        }
-                    },
-                    None => false
-                }
-            },
-            Command::DropItem{item_id} => {
-                let coord = match spawning_pool.get::<components::Physics>(action.actor.unwrap()) {
-                    Some(physics) => Some(physics.coord),
-                    None => None
-                };
-                match coord {
-                    Some(coord) => {
-                        match self.get_mut(coord) {
-                            Some(cell) => {
-                                cell.add_entity(item_id, spawning_pool);
-                                true
-                            },
-                            None => false
-                        }
-                    },
-                    None => false
-                }
-            },
-            Command::PickUpItem{item_id} => {
-                let coord = match spawning_pool.get::<components::Physics>(action.actor.unwrap()) {
-                    Some(physics) => Some(physics.coord),
-                    None => None
-                };
-                if let Some(coord) = coord {
-                    if let Some(cell) = self.get_mut(coord) {
-                        cell.remove_entity(item_id, spawning_pool);
-                    };
-                };
-                true
-            },
-            _ => false
-        };
     }
 
     pub fn in_circle<P: Into<Point>>(&self, pos: P, radius: i32) -> Vec<(Point, EntityId)> {

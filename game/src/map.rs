@@ -74,28 +74,15 @@ impl Map {
         x >= 0 && x < self.dimensions.x && y >= 0 && y < self.dimensions.y
     }
 
-    pub fn get_neigbours(&self, x: i32, y: i32, only_cardinal: bool) -> Vec<(Point, &Cell)> {
-        let mut cells: Vec<(Point, &Cell)> = vec![];
-        let dirs = if only_cardinal {
-            vec![(0, -1), (-1, 0), (1, 0), (0, 1)]
-        } else {
-            vec![(1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)]
-        };
-
-        for dir in dirs {
-            let p: Point = (x + dir.0, y + dir.1).into();
-            if self.in_bounds(p.x, p.y) {
-                cells.push((p, self.get_cell(p.x, p.y)));
-            }
-        }
-        cells
+    pub fn is_floor(&self, position: Point) -> bool {
+        self.get_cell(position.x, position.y).tile_type == TileType::Floor
     }
 }
 
 pub fn can_walk(position: Point, grid: &SpatialTable, map: &Map) -> bool {
     match grid.get(position) {
         Some(cell) => {
-            !cell.solid && map.get_cell(position.x, position.y).tile_type == TileType::Floor
+            !cell.solid && map.is_floor(position)
         },
         None => {
             false

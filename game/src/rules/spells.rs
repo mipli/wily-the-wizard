@@ -58,41 +58,90 @@ pub fn cast_spell(action: &mut Action, state: &GameState, _rejected_actions: &mu
     }
 }
 
-fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state: &GameState, reaction_actions: &mut Vec<Action>) -> bool {
-    let target = match spell.target {
-        SpellTarget::Entity => target,
-        SpellTarget::Closest => get_closest_target(caster.unwrap(), state),
+enum SpellTarget {
+    Entity(EntityId),
+    Position(Point)
+}
 
+fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state: &GameState, reaction_actions: &mut Vec<Action>) -> bool {
+    let spell_target = match spell.target {
+        SpellTargetType::Entity => Some(SpellTarget::Entity(target.unwrap())),
+        SpellTargetType::Closest => {
+            let target = get_closest_target(caster.unwrap(), state);
+            if target.is_some() {
+                Some(SpellTarget::Entity(target.unwrap()))
+            } else {
+                None
+            }
+        },
+        SpellTargetType::Spot => {
+            if let Some(id) = caster {
+                if let Some(pos) = utils::get_position(id, &state.spawning_pool) {
+                    Some(SpellTarget::Position(pos))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }
     };
-    if target.is_none() {
+    if spell_target.is_none() {
         return false;
     }
     match spell.kind {
-        Spells::MagicMissile => {
+        Spells::Fog => {
+            let target = match spell_target {
+                Some(SpellTarget::Position(pos)) => pos,
+                _ => return false
+            };
             reaction_actions.push(Action{
                 actor: caster,
-                target,
+                target: None,
+                command: Command::SpawnFog{pos: target}
+            });
+        },
+        Spells::MagicMissile => {
+            let target = match spell_target {
+                Some(SpellTarget::Entity(id)) => id,
+                _ => return false
+            };
+            reaction_actions.push(Action{
+                actor: caster,
+                target: Some(target),
                 command: Command::TakeDamage{damage: spell.power}
             });
         },
         Spells::LightningStrike => {
+            let target = match spell_target {
+                Some(SpellTarget::Entity(id)) => id,
+                _ => return false
+            };
             reaction_actions.push(Action{
                 actor: caster,
-                target,
+                target: Some(target),
                 command: Command::LightningStrike{damage: spell.power}
             });
         },
         Spells::Confusion => {
+            let target = match spell_target {
+                Some(SpellTarget::Entity(id)) => id,
+                _ => return false
+            };
             reaction_actions.push(Action{
                 actor: caster,
-                target,
+                target: Some(target),
                 command: Command::Confuse
             });
         },
         Spells::Heal => {
+            let target = match spell_target {
+                Some(SpellTarget::Entity(id)) => id,
+                _ => return false
+            };
             reaction_actions.push(Action{
                 actor: caster,
-                target,
+                target: Some(target),
                 command: Command::Heal{amount: spell.power}
             });
         }

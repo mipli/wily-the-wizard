@@ -136,45 +136,9 @@ impl InventoryScreen {
                 target: None,
                 command: Command::UseItem{item_id}
             });
-            /*
-            self.add_cast_spell_actions(item_id, actions, state);
-            */
         }
     }
 
-                    /*
-    fn add_cast_spell_actions(&mut self, item_id: EntityId, actions: &mut Vec<Action>, state: &GameState) {
-        if let Some(item) = state.spawning_pool.get::<components::Item>(item_id) {
-            match item.on_use {
-                Some(components::OnUseCallback::Spell(ref spell)) => {
-                    actions.push(Action{
-                        actor: Some(state.player),
-                        target: None,
-                        command: Command::CastSpell{spell: spell.clone()}
-                    });
-                    let sp = spell.clone();
-                    self.screens.push(Box::new(SingleTargetScreen::new(
-                        physics.coord,
-                        state,
-                        Box::new(move |e, s, actions| {
-                            actions.push(Action{
-                                actor: Some(s.player),
-                                target: Some(e),
-                                command: Command::CastSpell{spell: sp.clone()}
-                            });
-                            actions.push(Action{
-                                actor: Some(s.player),
-                                target: None,
-                                command: Command::DestroyItem{item_id}
-                            });
-                        })
-                    )));
-                },
-                _ => {}
-            };
-        }
-    }
-                    */
     fn equip_action(&self, entity: EntityId, item_id: EntityId, actions: &mut Vec<Action>, spawning_pool: &components::SpawningPool) -> bool {
         let can_equip = spawning_pool.get::<components::Equipment>(entity).is_some();
         if !can_equip {

@@ -77,7 +77,8 @@ pub struct Game {
     pub reaction_queue: Vec<Action>,
     pub rejection_queue: Vec<Action>,
     pub fov: tcod::map::Map,
-    pub tick_time: i32
+    pub tick_time: i32,
+    pub systems: systems::DurationSystem
 }
 
 pub enum WaitResult {
@@ -100,6 +101,7 @@ enum ActionTickResult {
 impl Game {
     pub fn game_tick(&mut self, actions: Vec<Action>, animations: &mut Vec<render::Animation>) -> TickResult {
         self.state.scheduler.tick(&self.state.spawning_pool);
+        self.systems.run(&mut self.state);
         if self.state.spawning_pool.get::<components::MapMemory>(self.state.scheduler.get_current()).is_some() {
             self.update_fov();
         }
@@ -110,6 +112,9 @@ impl Game {
             }
         }
         self.current_action = None;
+        if !self.action_queue.is_empty() && self.action_queue[0].command != Command::Wait {
+            println!("Actions: {:?}", self.action_queue);
+        }
 
         let mut performed_action = false;
         let mut require_information = false;
@@ -140,6 +145,7 @@ impl Game {
             self.current_action = None;
             self.rejection_queue = vec![];
             self.reaction_queue = vec![];
+            self.state.spatial_table.reset(&self.state.spawning_pool);
             TickResult::Passed
         } else {
             TickResult::Wait(WaitResult::Wait)
@@ -258,7 +264,7 @@ impl Game {
 fn check_require_information(action: &Action) -> bool {
     match action.command {
         Command::CastSpell{ref spell} => {
-            spell.target == spells::SpellTarget::Entity && action.target.is_none()
+            spell.target == spells::SpellTargetType::Entity && action.target.is_none()
         },
         _ => {
             false

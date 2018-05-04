@@ -191,6 +191,11 @@ impl Screen for GameScreen {
             Key { printable: '.', .. } => {
                 Some(InputCommand::GameCommand{command: Command::Wait})
             },
+            Key { printable: '1', .. } => {
+                Some(InputCommand::GameCommand{command: Command::CastSpell{
+                    spell: spells::Spell::create(spells::Spells::Fog)
+                }})
+            },
             Key { printable: '0', .. } => {
                 Some(InputCommand::ToggleOmnipotence)
             },

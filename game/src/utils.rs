@@ -81,13 +81,3 @@ pub fn describe_entity(entity: EntityId, spawning_pool: &components::SpawningPoo
         return format!("({}) A {}", glyph, name);
     }
 }
-
-pub fn get_neigbours(x: i32, y: i32) -> Vec<Point> {
-    let mut points: Vec<Point> = vec![];
-
-    for dir in &[(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)] {
-        let p: Point = (x + dir.0, y + dir.1).into();
-        points.push(p);
-    }
-    points
-}

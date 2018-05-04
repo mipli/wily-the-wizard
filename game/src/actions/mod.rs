@@ -1,9 +1,11 @@
 use inflector::Inflector;
 
+use geo::*;
 use std::cmp::min;
 use tcod::colors;
 use game::*;
 use components;
+use components::{SpawningPool};
 
 mod items;
 mod definitions;
@@ -20,16 +22,14 @@ pub enum ActionResult {
 }
 
 pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResult {
-    game_state.spatial_table.update(action, &mut game_state.spawning_pool);
     match action.command {
-        Command::Wait | Command::PreKillEntity => ActionResult::Performed{time: 100},
+        Command::Wait => ActionResult::Performed{time: 100},
         Command::Abort => ActionResult::Failed,
         Command::DescendStairs => {
             game_state.new_level();
             ActionResult::Performed{time: 100}
         },
         Command::AttackEntity{..} => {
-            // perform_attack_entity(action, game_state, reactions_actions);
             ActionResult::Performed{time: 100}
         },
         Command::WalkDirection{dir} => {
@@ -37,6 +37,10 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
                 physics.coord += dir;
             }
             ActionResult::Performed{time: 100}
+        },
+        Command::SpawnFog{..} => {
+            perform_spawn_fog(action, game_state);
+            ActionResult::Performed{time: 0}
         },
         Command::TakeDamage{..} => {
             perform_take_damage(action, game_state);
@@ -101,6 +105,46 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
             ActionResult::Performed{time: 0}
         }
     }
+}
+fn perform_spawn_fog(action: &Action, state: &mut GameState) {
+    let coords = if let Command::SpawnFog{pos} = action.command {
+        let mut coords: Vec<Point> = get_neigbours(pos.x, pos.y, false).into_iter().filter(|&pos| {
+            state.map.is_floor(pos)
+        }).collect();
+        if state.map.is_floor(pos) {
+            coords.push(pos);
+        }
+        coords
+    } else {
+        vec![]
+    };
+    for coord in coords {
+        create_fog_at(coord, &mut state.spawning_pool);
+    }
+}
+
+fn create_fog_at(pos: Point, spawning_pool: &mut SpawningPool) {
+    let fog = spawning_pool.spawn_entity();
+    spawning_pool.set(fog, components::Visual{
+        always_display: false,
+        glyph: '#',
+        color: colors::LIGHTEST_SKY
+    });
+    spawning_pool.set(fog, components::Physics{
+        coord: pos,
+    });
+    spawning_pool.set(fog, components::Duration{
+        spawn_time: 0,
+        expire_time: 0,
+        duration: 1000
+    });
+    spawning_pool.set(fog, components::Flags{
+        block_sight: true, 
+        solid: false
+    });
+    spawning_pool.set(fog, components::Information{
+        name: "Fog".to_string()
+    });
 }
 
 fn perform_confuse(action: &Action, game_state: &mut GameState) -> bool {

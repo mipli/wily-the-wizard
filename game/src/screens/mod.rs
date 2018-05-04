@@ -5,6 +5,7 @@ use tcod::input::{self, Mouse, Event, Key};
 use tcod::console::*;
 use tcod::colors;
 
+use systems;
 use render;
 
 use geo::*;
@@ -155,6 +156,7 @@ pub fn create_new_game() -> Game {
         current_action: None,
         action_queue: vec![],
         reaction_queue: vec![],
-        rejection_queue: vec![]
+        rejection_queue: vec![],
+        systems: systems::DurationSystem::new()
     }
 }

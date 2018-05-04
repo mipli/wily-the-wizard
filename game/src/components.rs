@@ -25,6 +25,13 @@ pub struct Controller {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Duration {
+    pub spawn_time: i32,
+    pub duration: i32,
+    pub expire_time: i32
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiMemory {
     pub player_position: Option<Point>
 }
@@ -187,5 +194,6 @@ create_spawning_pool!(
     (Inventory, inventory, HashMapStorage),
     (Equipment, equipment, HashMapStorage),
     (StatusEffects, status_effects, HashMapStorage),
-    (SpellBook, spell_book, HashMapStorage)
+    (SpellBook, spell_book, HashMapStorage),
+    (Duration, duration, HashMapStorage)
 );
