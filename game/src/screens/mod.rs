@@ -19,10 +19,14 @@ mod inventory_screen;
 mod game_over;
 mod utils;
 mod target;
+mod spell_entity_target;
+mod spell_position_target;
 
 pub use self::inventory_screen::{InventoryScreen, InventoryAction};
 pub use self::game_over::GameOverScreen;
-pub use self::target::{TargetScreen, SingleTargetScreen};
+pub use self::target::TargetScreen;
+pub use self::spell_entity_target::SpellEntityTargetScreen;
+pub use self::spell_position_target::SpellPositionTargetScreen;
 
 pub struct Input {
     key: Key,

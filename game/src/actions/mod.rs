@@ -148,7 +148,7 @@ fn create_fog_at(pos: Point, spawning_pool: &mut SpawningPool) {
 }
 
 fn perform_confuse(action: &Action, game_state: &mut GameState) -> bool {
-    let performed = if let Some(target) = action.target {
+    let performed = if let Some(ActionTarget::Entity(target)) = action.target {
         if let Some(status_effects) = game_state.spawning_pool.get_mut::<components::StatusEffects>(target) {
             status_effects.confused = Some(5);
             return true;
@@ -178,17 +178,19 @@ fn perform_heal(action: &Action, game_state: &mut GameState) {
         _ => 0
     };
     let mut performed = false;
-    if let Some(stats) = game_state.spawning_pool.get_mut::<components::Stats>(action.target.unwrap()) {
-        stats.health = min(stats.health + amount, stats.max_health);
-        performed = true;
-    }
-    if performed {
-        let actor_name = utils::get_actor_name(action, &game_state.spawning_pool);
-        let target_name = utils::get_target_name(action, &game_state.spawning_pool);
-        if actor_name == target_name {
-            game_state.messages.log(MessageLevel::Info, format!("{} healed for {}", target_name.to_sentence_case(), amount));
-        } else {
-            game_state.messages.log(MessageLevel::Info, format!("{} healed {} for {}", actor_name.to_sentence_case(), target_name, amount));
+    if let Some(ActionTarget::Entity(target)) = action.target {
+        if let Some(stats) = game_state.spawning_pool.get_mut::<components::Stats>(target) {
+            stats.health = min(stats.health + amount, stats.max_health);
+            performed = true;
+        }
+        if performed {
+            let actor_name = utils::get_actor_name(action, &game_state.spawning_pool);
+            let target_name = utils::get_target_name(action, &game_state.spawning_pool);
+            if actor_name == target_name {
+                game_state.messages.log(MessageLevel::Info, format!("{} healed for {}", target_name.to_sentence_case(), amount));
+            } else {
+                game_state.messages.log(MessageLevel::Info, format!("{} healed {} for {}", actor_name.to_sentence_case(), target_name, amount));
+            }
         }
     }
 }
@@ -293,7 +295,7 @@ fn perform_take_damage(action: &Action, game_state: &mut GameState) {
         _ => unreachable!()
     };
 
-    if let Some(target) = action.target {
+    if let Some(ActionTarget::Entity(target)) = action.target {
         if let Some(mut stats) = game_state.spawning_pool.get_mut::<components::Stats>(target) {
             stats.health -= damage;
         }
@@ -302,11 +304,20 @@ fn perform_take_damage(action: &Action, game_state: &mut GameState) {
     let attacker_name = utils::get_actor_name(action, &game_state.spawning_pool);
     let target_name = utils::get_target_name(action, &game_state.spawning_pool);
 
-    if action.target.unwrap() == game_state.player {
+    let is_player = if let Some(ActionTarget::Entity(target)) = action.target {
+        if target == game_state.player {
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+    if is_player {
         game_state.messages.log(MessageLevel::Important, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
     } else {
         game_state.messages.log(MessageLevel::Info, format!("The {} attacked the {} for {}", attacker_name, target_name, damage));
-    };
+    }
 }
 
 fn perform_open_door(action: &Action, game_state: &mut GameState) {
@@ -322,34 +333,3 @@ fn perform_open_door(action: &Action, game_state: &mut GameState) {
     flags.solid = false;
     flags.block_sight = false;
 }
-
-/*
-fn perform_attack_entity(action: &Action, game_state: &GameState, reaction_actions: &mut Vec<Action>) {
-    if let Command::AttackEntity{bonus_strength, bonus_defense} = action.command {
-        if let Some(actor) = action.actor {
-            let target_id = match action.target {
-                Some(id) => id,
-                _ => unreachable!()
-            };
-
-            let strength = match game_state.spawning_pool.get::<components::Stats>(actor) {
-                Some(stats) => stats.strength,
-                None => 0 
-            };
-            let target_defense = bonus_defense + match game_state.spawning_pool.get::<components::Stats>(target_id) {
-                Some(stats) => stats.defense,
-                None => 0 
-            };
-            let attack_strength = bonus_strength + strength;
-
-            let damage = max(1, attack_strength - target_defense);
-
-            reaction_actions.push(Action{
-                target: Some(target_id),
-                actor: action.actor,
-                command: Command::TakeDamage{damage}
-            });
-        }
-    }
-}
-*/

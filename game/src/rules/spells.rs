@@ -11,8 +11,9 @@ use rules::definitions::*;
 pub fn lightning_strike(action: &mut Action, _state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let  Command::LightningStrike{damage} = action.command {
         reaction_actions.push(Action{
-            command: Command::TakeDamage{damage},
-            ..*action
+            target: action.target,
+            actor: action.actor,
+            command: Command::TakeDamage{damage}
         });
     }
     ActionStatus::Accept
@@ -26,13 +27,13 @@ pub fn validate_spell(action: &mut Action, state: &GameState, _rejected_actions:
                return  ActionStatus::Reject;
             }
         }
-        if let Some(target) = action.target {
+        if let Some(ActionTarget::Entity(target)) = action.target {
             if state.spawning_pool.get::<Physics>(target).is_none() {
                return  ActionStatus::Reject;
             }
         }
         if let Some(actor) = action.actor {
-            if let Some(target) = action.target {
+            if let Some(ActionTarget::Entity(target)) = action.target {
                 let actor_position = utils::get_position(actor, &state.spawning_pool).unwrap();
                 let target_position = utils::get_position(target, &state.spawning_pool).unwrap();
                 let distance = actor_position.distance(target_position);
@@ -63,9 +64,15 @@ enum SpellTarget {
     Position(Point)
 }
 
-fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state: &GameState, reaction_actions: &mut Vec<Action>) -> bool {
+fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, state: &GameState, reaction_actions: &mut Vec<Action>) -> bool {
     let spell_target = match spell.target {
-        SpellTargetType::Entity => Some(SpellTarget::Entity(target.unwrap())),
+        SpellTargetType::Entity => {
+            if let Some(ActionTarget::Entity(target)) = target {
+                Some(SpellTarget::Entity(target))
+            } else {
+                None
+            }
+        },
         SpellTargetType::Closest => {
             let target = get_closest_target(caster.unwrap(), state);
             if target.is_some() {
@@ -75,12 +82,8 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state
             }
         },
         SpellTargetType::Spot => {
-            if let Some(id) = caster {
-                if let Some(pos) = utils::get_position(id, &state.spawning_pool) {
-                    Some(SpellTarget::Position(pos))
-                } else {
-                    None
-                }
+            if let Some(ActionTarget::Position(target)) = target {
+                Some(SpellTarget::Position(target))
             } else {
                 None
             }
@@ -108,7 +111,7 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state
             };
             reaction_actions.push(Action{
                 actor: caster,
-                target: Some(target),
+                target: Some(ActionTarget::Entity(target)),
                 command: Command::TakeDamage{damage: spell.power}
             });
         },
@@ -119,7 +122,7 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state
             };
             reaction_actions.push(Action{
                 actor: caster,
-                target: Some(target),
+                target: Some(ActionTarget::Entity(target)),
                 command: Command::LightningStrike{damage: spell.power}
             });
         },
@@ -130,7 +133,7 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state
             };
             reaction_actions.push(Action{
                 actor: caster,
-                target: Some(target),
+                target: Some(ActionTarget::Entity(target)),
                 command: Command::Confuse
             });
         },
@@ -141,7 +144,7 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<EntityId>, state
             };
             reaction_actions.push(Action{
                 actor: caster,
-                target: Some(target),
+                target: Some(ActionTarget::Entity(target)),
                 command: Command::Heal{amount: spell.power}
             });
         }

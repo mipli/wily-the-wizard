@@ -2,10 +2,16 @@ use spawning_pool::{EntityId};
 use geo::*;
 use spells;
 
+#[derive(Clone, Copy, Debug)]
+pub enum ActionTarget {
+    Entity(EntityId),
+    Position(Point)
+}
+
 #[derive(Clone, Debug)]
 pub struct Action {
     pub actor: Option<EntityId>,
-    pub target: Option<EntityId>,
+    pub target: Option<ActionTarget>,
     pub command: Command
 }
 

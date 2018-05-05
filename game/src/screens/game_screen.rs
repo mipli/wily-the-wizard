@@ -87,7 +87,7 @@ impl Screen for GameScreen {
             Some(InputCommand::SelfHeal) => {
                 actions.push(Action{
                     actor: Some(state.player),
-                    target: Some(state.player),
+                    target: Some(ActionTarget::Entity(state.player)),
                     command: Command::CastSpell{
                         spell: spells::Spell::create(spells::Spells::Heal)
                     }
@@ -170,11 +170,11 @@ impl Screen for GameScreen {
             Key { code: KeyCode::Left, .. } | Key { printable: 'h', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (-1, 0).into() }})
             },
-            Key { printable: ' ', .. } => {
-                Some(InputCommand::TileInteraction)
-            },
             Key { printable: 'y', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (-1, -1).into() }})
+            },
+            Key { printable: ' ', .. } => {
+                Some(InputCommand::TileInteraction)
             },
             Key { printable: 'i', .. } => {
                 Some(InputCommand::ShowInventoryUse)

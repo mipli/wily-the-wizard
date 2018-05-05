@@ -31,7 +31,7 @@ impl Spell {
                     name: "Fog".to_string(),
                     kind: Spells::Fog,
                     power: 0,
-                    range: 10,
+                    range: 5,
                     target: SpellTargetType::Spot
                 }
             },

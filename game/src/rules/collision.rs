@@ -59,7 +59,7 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                             if entity_faction != actor_faction {
                                 rejected_actions.push(Action {
                                     actor: action.actor,
-                                    target: Some(*entity),
+                                    target: Some(ActionTarget::Entity(*entity)),
                                     command: Command::AttackEntity{bonus_strength: 0, bonus_defense: 0}
                                 });
                             }

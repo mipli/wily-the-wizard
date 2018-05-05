@@ -30,7 +30,7 @@ pub fn use_item(action: &mut Action, game_state: &GameState, _rejected_actions: 
                                 command: Command::CastSpell{spell: spells::Spell::create(spell)}
                             };
                             if item.kind == components::ItemKind::Potion {
-                                act.target = action.actor;
+                                act.target = Some(ActionTarget::Entity(action.actor.unwrap()));
                             }
                             reaction_actions.push(act);
                         }
@@ -47,7 +47,7 @@ pub fn apply_equipment_bonus(action: &mut Action, game_state: &GameState, _rejec
     match action.command {
         Command::AttackEntity{..} => {
             if let Some(actor) = action.actor {
-                if let Some(target) = action.target {
+                if let Some(ActionTarget::Entity(target)) = action.target {
                     action.command = Command::AttackEntity {
                         bonus_strength: utils::get_strength_bonus(actor, &game_state.spawning_pool),
                         bonus_defense: utils::get_defense_bonus(target, &game_state.spawning_pool)

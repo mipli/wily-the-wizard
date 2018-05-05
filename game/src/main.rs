@@ -129,13 +129,31 @@ fn run_game(tcod: &mut Tcod) {
                     _ => 10
                 };
                 if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
-                    manager.add_screen(Box::new(screens::SingleTargetScreen::new(
+                    manager.add_screen(Box::new(screens::SpellEntityTargetScreen::new(
                         physics.coord,
                         range,
                         &game.state,
                         Box::new(move |e, _state, actions| {
                             let mut act = action.clone();
-                            act.target = Some(e);
+                            act.target = Some(ActionTarget::Entity(e));
+                            actions.push(act);
+                        })
+                    )));
+                }
+            },
+            TickResult::Wait(WaitResult::RequireSpot{action}) => {
+                let range = match action.command {
+                    Command::CastSpell{ref spell} => spell.range,
+                    _ => 10
+                };
+                if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
+                    manager.add_screen(Box::new(screens::SpellPositionTargetScreen::new(
+                        physics.coord,
+                        range,
+                        &game.state,
+                        Box::new(move |pos, _state, actions| {
+                            let mut act = action.clone();
+                            act.target = Some(ActionTarget::Position(pos));
                             actions.push(act);
                         })
                     )));

@@ -1,6 +1,6 @@
 use components;
 use spawning_pool::EntityId;
-use actions::Action;
+use actions::{ActionTarget, Action};
 use geo::*;
 
 
@@ -20,8 +20,8 @@ pub fn get_actor_name(action: &Action, spawning_pool: &components::SpawningPool)
 
 pub fn get_target_name(action: &Action, spawning_pool: &components::SpawningPool) -> String {
     match action.target {
-        Some(actor) => get_entity_name(actor, spawning_pool),
-        None => "Unknown".to_string()
+        Some(ActionTarget::Entity(actor)) => get_entity_name(actor, spawning_pool),
+        _ => "Unknown".to_string()
     }
 }
 

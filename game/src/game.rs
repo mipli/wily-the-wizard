@@ -83,7 +83,8 @@ pub struct Game {
 
 pub enum WaitResult {
     Wait,
-    RequireTarget{action: Action}
+    RequireTarget{action: Action},
+    RequireSpot{action: Action}
 }
 
 pub enum TickResult {
@@ -134,7 +135,15 @@ impl Game {
         }
         if require_information {
             if let Some(ref action) = self.current_action {
-                TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
+                if let Command::CastSpell{ref spell} = action.command {
+                    if spell.target == spells::SpellTargetType::Spot {
+                        TickResult::Wait(WaitResult::RequireSpot{action: action.clone()})
+                    } else {
+                        TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
+                    }
+                } else {
+                    TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
+                }
             } else {
                 panic!("TickResult waiting without game.current_action");
             }
@@ -264,7 +273,11 @@ impl Game {
 fn check_require_information(action: &Action) -> bool {
     match action.command {
         Command::CastSpell{ref spell} => {
-            spell.target == spells::SpellTargetType::Entity && action.target.is_none()
+            match spell.target {
+                spells::SpellTargetType::Entity => action.target.is_none(),
+                spells::SpellTargetType::Spot => action.target.is_none(),
+                spells::SpellTargetType::Closest => false
+            }
         },
         _ => {
             false
@@ -275,7 +288,7 @@ fn check_require_information(action: &Action) -> bool {
 fn animate_action(action: &Action, animations: &mut Vec<render::Animation>, spawning_pool: &components::SpawningPool) {
     match action.command {
         Command::LightningStrike{..} => {
-            if let Some(target) = action.target {
+            if let Some(ActionTarget::Entity(target)) = action.target {
                 if let Some(pos) = utils::get_position(target, spawning_pool) {
                     if let Some(glyph) = utils::get_glyph(target, spawning_pool) {
                         animations.push(render::Animation::new(
@@ -289,7 +302,7 @@ fn animate_action(action: &Action, animations: &mut Vec<render::Animation>, spaw
             }
         },
         Command::TakeDamage{..} => {
-            if let Some(target) = action.target {
+            if let Some(ActionTarget::Entity(target)) = action.target {
                 if let Some(glyph) = utils::get_glyph(target, spawning_pool) {
                     animations.push(render::Animation::new(
                         render::AnimationAnchor::Entity{entity: target},

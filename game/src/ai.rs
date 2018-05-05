@@ -80,7 +80,7 @@ pub fn perform_spell_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
                 if is_visible && entity_position.distance(player_position) < spell.range as f32 {
                     return Some(vec![Action {
                             actor: Some(actor),
-                            target: Some(state.player),
+                            target: Some(ActionTarget::Entity(state.player)),
                             command: Command::CastSpell{
                                 spell
                             }
