@@ -73,6 +73,12 @@ impl ScreenManager {
     }
 
     pub fn render(&mut self, delta: f64, state: &mut GameState, fov: &tcod::map::Map, tcod: &mut render::Tcod) {
+        tcod.time += delta;
+        // aim to keep rendering speed at 60 fps
+        if tcod.time < tcod.prev_time + 16.7 {
+            return;
+        }
+        tcod.prev_time = tcod.time;
         let mut windows = vec![];
         for screen in &mut self.screens {
             let (res, window) = screen.render(delta, state, fov, tcod);

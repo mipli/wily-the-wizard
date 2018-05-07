@@ -65,16 +65,8 @@ impl Animation {
     }
 }
 
-pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool, delta: f64) -> Offscreen {
-    tcod.time += delta;
-    // aim to keep rendering speed at 60 fps
-    /*
-    if tcod.time < tcod.prev_time + 16.7 {
-        return;
-    }
-    */
+pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool, _delta: f64) -> Offscreen {
     let mut screen = Offscreen::new(tcod.root.width(), tcod.root.height());
-    tcod.prev_time = tcod.time;
     render_map(&mut tcod.con, memory, game_state, omnipotent);
     render_entities(&mut tcod.con, memory, game_state, omnipotent);
     render_messages(&mut tcod.messages, game_state);

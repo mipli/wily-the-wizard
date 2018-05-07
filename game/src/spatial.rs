@@ -37,7 +37,15 @@ impl SpatialTable {
     }
 
     pub fn reset(&mut self, spawning_pool: &components::SpawningPool) {
-        self.cells = self.cells.iter().map(|_| SpatialCell::new()).collect();
+        for cell in self.cells.iter_mut() {
+            if !cell.entities.is_empty() {
+                cell.entities.clear();
+                cell.solid = false;
+                cell.solid_count = 0;
+                cell.opaque = false;
+                cell.opaque_count = 0;
+            }
+        }
         let ids = spawning_pool.get_all::<components::Physics>();
         for (id, physics) in ids {
             let pos = physics.coord;

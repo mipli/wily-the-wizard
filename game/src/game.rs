@@ -152,8 +152,8 @@ impl Game {
             self.state.scheduler.schedule_entity(entity, self.tick_time, &self.state.spawning_pool);
             self.tick_time = 0;
             self.current_action = None;
-            self.rejection_queue = vec![];
-            self.reaction_queue = vec![];
+            self.rejection_queue.clear();
+            self.reaction_queue.clear();
             self.state.spatial_table.reset(&self.state.spawning_pool);
             TickResult::Passed
         } else {
@@ -183,7 +183,7 @@ impl Game {
                     ActionStatus::Accept => {
                         let action_result = perform_action(action, &mut self.state);
                         if action_result == ActionResult::Failed {
-                            self.reaction_queue = vec![];
+                            self.reaction_queue.clear();
                             performed_action = false;
                         } else {
                             performed_action = performed_action || match action_result {
@@ -200,11 +200,11 @@ impl Game {
                                 self.action_queue.insert(0, reaction);
                             }
                         } else {
-                            self.reaction_queue = vec![];
+                            self.reaction_queue.clear();
                         }
                     }
                     ActionStatus::Reject => {
-                        self.reaction_queue = vec![];
+                        self.reaction_queue.clear();
                         self.action_queue = self.rejection_queue.drain(..).collect();
                         self.action_queue.reverse();
                     }
