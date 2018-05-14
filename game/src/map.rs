@@ -106,7 +106,14 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
     for room in generated.rooms.iter().skip(1) {
         let p = rng.gen::<f32>();
         if p < 0.6 {
-            add_monsters(room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
+            let difficulty = add_monsters(room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
+            match difficulty {
+                RoomDifficulty::Normal | RoomDifficulty::Difficult => {
+                    let entity = add_item(room.center(), spawning_pool, &mut rng);
+                    scheduler.schedule_entity(entity, 0, spawning_pool);
+                },
+                RoomDifficulty::Easy => {}
+            };
         } else if p < 0.8 {
             let entity = add_item(room.center(), spawning_pool, &mut rng);
             scheduler.schedule_entity(entity, 0, spawning_pool);
@@ -131,7 +138,7 @@ enum RoomDifficulty {
     Difficult
 }
 
-fn add_monsters<T: Rng>(room: &Rect, creatures: &Vec<CreatureData>, scheduler: &mut Scheduler, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, rng: &mut T) {
+fn add_monsters<T: Rng>(room: &Rect, creatures: &Vec<CreatureData>, scheduler: &mut Scheduler, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, rng: &mut T) -> RoomDifficulty {
     let chances = &mut [
         Weighted {
             weight: 5,
@@ -147,9 +154,10 @@ fn add_monsters<T: Rng>(room: &Rect, creatures: &Vec<CreatureData>, scheduler: &
         }
     ];
 
-    let choice = WeightedChoice::new(chances);
+    let chooser = WeightedChoice::new(chances);
+    let choice = chooser.ind_sample(rng);
 
-    match choice.ind_sample(rng) {
+    match choice {
         RoomDifficulty::Easy => {
             add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
             add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
@@ -166,6 +174,7 @@ fn add_monsters<T: Rng>(room: &Rect, creatures: &Vec<CreatureData>, scheduler: &
             add_creature(&creatures[2], room, width, height, scheduler, spawning_pool, rng);
         }
     }
+    choice
 }
 
 fn add_creature<T: Rng>(creature: &CreatureData, room: &Rect, width: i32, height: i32, scheduler: &mut Scheduler, spawning_pool: &mut components::SpawningPool, rng: &mut T) {
@@ -190,7 +199,6 @@ fn get_empty_spot<T: Rng>(room: &Rect, spawning_pool: &mut components::SpawningP
 
     None
 }
-
 
 fn add_door(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let door = spawning_pool.spawn_entity();

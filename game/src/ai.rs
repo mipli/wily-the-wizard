@@ -8,39 +8,31 @@ use spells;
 use components;
 
 pub fn perform_basic_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
-    use components::*;
-    if let Some(entity_position) = get_entity_position(actor, state) {
-        let player_position = get_player_position(actor, state);
-        if let Some(player_position) = player_position {
-            if player_position == entity_position {
+    let player_position = get_player_position(actor, state);
+    if let Some(player_position) = player_position {
+        match get_dir_to_position(player_position, actor, state) {
+            Some(p) if p == Point::new(0, 0) => {
+                return Some(vec![Action {
+                    actor: Some(actor),
+                    target: None,
+                    command: Command::Wait
+                }]);
+            },
+            Some(dir) => {
+                return Some(vec![Action {
+                    actor: Some(actor),
+                    target: None,
+                    command: Command::WalkDirection{dir}
+                }]);
+            },
+            None => {
                 return Some(vec![Action {
                     actor: Some(actor),
                     target: None,
                     command: Command::Wait
                 }]);
             }
-            if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
-                mem.player_position = Some(player_position);
-            }
-            match path::path(entity_position, player_position, &state.spatial_table, &state.map) {
-                Some(mut path) => {
-                    let next = path.pop().unwrap();
-                    let dir = Point::new(next.x - entity_position.x, next.y - entity_position.y);
-                    return Some(vec![Action {
-                            actor: Some(actor),
-                            target: None,
-                            command: Command::WalkDirection{dir}
-                        }]);
-                },
-                None => {
-                    return Some(vec![Action {
-                        actor: Some(actor),
-                        target: None,
-                        command: Command::Wait
-                    }]);
-                }
-            }
-        }
+        };
     }
     Some(vec![Action {
         actor: Some(actor),
@@ -56,7 +48,7 @@ pub fn perform_spell_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
         if let Some(player_position) = player_position {
             if player_position == entity_position {
                 if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
-                    mem.player_position = None;
+                    mem.path_goal = None;
                 }
                 return Some(vec![Action {
                     actor: Some(actor),
@@ -65,7 +57,7 @@ pub fn perform_spell_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
                 }]);
             }
             if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
-                mem.player_position = Some(player_position);
+                mem.path_goal = Some(player_position);
             }
             let is_visible = match get_entity_position(state.player, state) {
                 Some(pos) => {
@@ -86,15 +78,13 @@ pub fn perform_spell_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
                             }
                         }]);
                 } else {
-                    match path::path(entity_position, player_position, &state.spatial_table, &state.map) {
-                        Some(mut path) => {
-                            let next = path.pop().unwrap();
-                            let dir = Point::new(next.x - entity_position.x, next.y - entity_position.y);
+                    match get_dir_to_position(player_position, actor, state) {
+                        Some(dir) => {
                             return Some(vec![Action {
-                                    actor: Some(actor),
-                                    target: None,
-                                    command: Command::WalkDirection{dir}
-                                }]);
+                                actor: Some(actor),
+                                target: None,
+                                command: Command::WalkDirection{dir}
+                            }]);
                         },
                         None => {
                             return Some(vec![Action {
@@ -103,7 +93,7 @@ pub fn perform_spell_ai(actor: EntityId, state: &mut GameState) -> Option<Vec<Ac
                                 command: Command::Wait
                             }]);
                         }
-                    }
+                    };
                 }
             }
         }
@@ -133,7 +123,7 @@ fn get_player_position(actor: EntityId, state: &GameState) -> Option<Point> {
                     Some(pos)
                 } else {
                     if let Some(mem) = state.spawning_pool.get::<AiMemory>(actor) {
-                        mem.player_position
+                        mem.path_goal
                     } else {
                         None
                     }
@@ -144,10 +134,47 @@ fn get_player_position(actor: EntityId, state: &GameState) -> Option<Point> {
         }
         None => {
             if let Some(mem) = state.spawning_pool.get::<AiMemory>(actor) {
-                mem.player_position
+                mem.path_goal
             } else {
                 None
             }
         }
+    }
+}
+
+fn get_dir_to_position(position: Point, actor: EntityId, state: &mut GameState) -> Option<Point> {
+    use components::*;
+
+    let entity_position = get_entity_position(actor, state)?;
+    if position == entity_position {
+        return Some(Point::new(0, 0));
+    };
+    let next_pos = if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
+        match mem.remember_path_to(entity_position, position) {
+            Some(next) => Some(next),
+            None => {
+                match path::path(entity_position, position, &state.spatial_table, &state.map) {
+                    Some(mut path) => {
+                        let next = path.pop();
+                        mem.path = Some(path);
+                        mem.path_goal = Some(position);
+                        next
+                    },
+                    None => {
+                        mem.forget();
+                        None
+                    }
+                }
+            }
+        }
+    } else {
+        None
+    };
+    match next_pos {
+        Some(next) => {
+            let dir = Point::new(next.x - entity_position.x, next.y - entity_position.y);
+            return Some(dir);
+        },
+        None => None
     }
 }

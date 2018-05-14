@@ -83,7 +83,7 @@ pub fn create_creature(data: &CreatureData, pos: Point, width: i32, height: i32,
         defense: data.defense
     });
     spawning_pool.set(creature, components::MapMemory::new(width, height));
-    spawning_pool.set(creature, components::AiMemory{player_position: None});
+    spawning_pool.set(creature, components::AiMemory::new());
     if data.ai == components::AI::SpellCaster {
         spawning_pool.set(creature, components::SpellBook{
             spells: vec![spells::Spells::MagicMissile]

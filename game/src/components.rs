@@ -33,7 +33,43 @@ pub struct Duration {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AiMemory {
-    pub player_position: Option<Point>
+    pub previous_position: Option<Point>,
+    pub path_goal: Option<Point>,
+    pub path: Option<Vec<Point>>
+}
+
+impl AiMemory {
+    pub fn new() -> AiMemory {
+        AiMemory {
+            previous_position: None,
+            path_goal: None,
+            path: None
+        }
+    }
+    pub fn remember_path_to(&mut self, current_position: Point, target: Point) -> Option<Point> {
+        if let Some(prev) = self.previous_position {
+            if prev != current_position {
+                self.forget();
+                return None;
+            }
+        }
+        let goal = self.path_goal?;
+        if goal != target {
+            return None;
+        }
+        match self.path {
+            Some(ref mut path) => {
+                let next = path.pop();
+                self.previous_position = next;
+                next
+            },
+            None => None
+        }
+    }
+    pub fn forget(&mut self) {
+        self.path_goal = None;
+        self.path = None;
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
