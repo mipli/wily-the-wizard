@@ -1,4 +1,6 @@
 use tcod::input::{KeyCode};
+use std::rc::Rc;
+use std::cell::RefCell;
 use spells;
 
 use utils;
@@ -25,7 +27,7 @@ pub struct GameScreen {
     omnipotent: bool,
     stats: Option<components::Stats>,
     map_memory: Option<components::MapMemory>,
-    screens: Vec<Box<Screen>>,
+    screens: Vec<ScreenPointer>,
     input_command: Option<InputCommand>
 }
 
@@ -42,14 +44,25 @@ impl GameScreen {
             input_command: None,
         }
     }
+
+    pub fn add_win_screen(&mut self) {
+        println!("Adding win screen");
+        self.screens.push(Rc::new(RefCell::new(Box::new(WinScreen::new(Box::new(|s| { 
+            s.close();
+        }))))));
+    }
 }
 
 impl Screen for GameScreen {
-    fn status(&self, _state: &mut GameState) -> bool {
-        !self.exit
+    fn close(&mut self) {
+        self.exit = true;
     }
 
-    fn new_screens(&mut self, _state: &mut GameState) -> Vec<Box<Screen>> {
+    fn should_discard(&self, _state: &mut GameState) -> bool {
+        self.exit
+    }
+
+    fn new_screens(&mut self, _state: &mut GameState) -> Vec<ScreenPointer> {
         self.screens.drain(..).collect()
     }
 
@@ -101,14 +114,14 @@ impl Screen for GameScreen {
             },
             Some(InputCommand::Look) => {
                 if let Some(physics) = state.spawning_pool.get::<components::Physics>(state.player) {
-                    self.screens.push(Box::new(TargetScreen::new(physics.coord, state)));
+                    self.screens.push(Rc::new(RefCell::new(Box::new(TargetScreen::new(physics.coord, state)))));
                 }
             },
             Some(InputCommand::ShowInventoryUse) => {
-                self.screens.push(Box::new(InventoryScreen::new(InventoryAction::UseItem)));
+                self.screens.push(Rc::new(RefCell::new(Box::new(InventoryScreen::new(InventoryAction::UseItem)))));
             },
             Some(InputCommand::ShowInventoryDrop) => {
-                self.screens.push(Box::new(InventoryScreen::new(InventoryAction::DropItem)));
+                self.screens.push(Rc::new(RefCell::new(Box::new(InventoryScreen::new(InventoryAction::DropItem)))));
             },
             Some(InputCommand::PickUpItem{..}) => {
                 let position = match state.spawning_pool.get::<components::Physics>(state.player) {
@@ -124,10 +137,15 @@ impl Screen for GameScreen {
                 }
             },
             Some(InputCommand::TileInteraction) => {
-               tile_interaction(state, actions);
+                tile_interaction(state, actions);
+                if actions.iter().any(|a| a.command == Command::Win) {
+                    self.add_win_screen();
+                    actions.clear();
+                }
             }
             _ => {}
         };
+        self.input_command = None;
 
         if let Some(current) = state.scheduler.current {
             if current == state.player {
@@ -137,7 +155,7 @@ impl Screen for GameScreen {
                     self.alive = false;
                 }
                 if !self.alive && !self.game_over {
-                    self.screens.push(Box::new(GameOverScreen::new()));
+                    self.screens.push(Rc::new(RefCell::new(Box::new(GameOverScreen::new()))));
                     self.game_over = true;
                 }
             }
@@ -217,16 +235,30 @@ fn tile_interaction(state: &GameState, actions: &mut Vec<Action>) {
             for entity in &spatial_cell.entities {
                 let glyph = utils::get_glyph(*entity, &state.spawning_pool);
                 if let Some(glyph) = glyph {
-                    println!("Glyph: {}", glyph);
                     if glyph == '<' {
-                        actions.push(Action{
-                            actor: Some(state.player),
-                            target: None,
-                            command: Command::DescendStairs
-                        });
+                        trigger_stair_interaction(state, actions);
+                    } else if glyph == 'X' {
+                        trigger_portal_interaction(state, actions);
                     }
                 }
             }
         }
     }
 }
+
+fn trigger_stair_interaction(state: &GameState, actions: &mut Vec<Action>) {
+    actions.push(Action{
+        actor: Some(state.player),
+        target: None,
+        command: Command::DescendStairs
+    });
+}
+
+fn trigger_portal_interaction(state: &GameState, actions: &mut Vec<Action>) {
+    actions.push(Action{
+        actor: Some(state.player),
+        target: None,
+        command: Command::Win
+    });
+}
+

@@ -49,11 +49,11 @@ impl TargetScreen {
 }
 
 impl Screen for TargetScreen {
-    fn status(&self, _state: &mut GameState) -> bool {
-        !self.exit && !self.entities.is_empty()
+    fn should_discard(&self, _state: &mut GameState) -> bool {
+        self.exit
     }
 
-    fn new_screens(&mut self, _state: &mut GameState) -> Vec<Box<Screen>> {
+    fn new_screens(&mut self, _state: &mut GameState) -> Vec<ScreenPointer> {
         vec![]
     }
 

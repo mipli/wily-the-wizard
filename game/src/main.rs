@@ -74,7 +74,7 @@ fn run_game(tcod: &mut Tcod) {
     let mut manager = screens::ScreenManager::new();
     let mut game = screens::create_new_game();
 
-    manager.add_screen(Box::new(screens::main_menu::MainMenuScreen::new()));
+    manager.add(Box::new(screens::main_menu::MainMenuScreen::new()));
     let mut t_0 = time::precise_time_ns();
     let mut t_1;
     let mut t_delta: f64;
@@ -129,7 +129,7 @@ fn run_game(tcod: &mut Tcod) {
                     _ => 10
                 };
                 if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
-                    manager.add_screen(Box::new(screens::SpellEntityTargetScreen::new(
+                    manager.add(Box::new(screens::SpellEntityTargetScreen::new(
                         physics.coord,
                         range,
                         &game.state,
@@ -147,7 +147,7 @@ fn run_game(tcod: &mut Tcod) {
                     _ => 10
                 };
                 if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
-                    manager.add_screen(Box::new(screens::SpellPositionTargetScreen::new(
+                    manager.add(Box::new(screens::SpellPositionTargetScreen::new(
                         physics.coord,
                         range,
                         &game.state,

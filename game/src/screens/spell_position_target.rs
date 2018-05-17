@@ -35,11 +35,11 @@ impl SpellPositionTargetScreen {
 }
 
 impl Screen for SpellPositionTargetScreen {
-    fn status(&self, _state: &mut GameState) -> bool {
-        !self.exit
+    fn should_discard(&self, _state: &mut GameState) -> bool {
+        self.exit
     }
 
-    fn new_screens(&mut self, _state: &mut GameState) -> Vec<Box<Screen>> {
+    fn new_screens(&mut self, _state: &mut GameState) -> Vec<ScreenPointer> {
         vec![]
     }
 

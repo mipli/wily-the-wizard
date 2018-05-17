@@ -17,6 +17,7 @@ pub struct Action {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
+    Win,
     CreateGame,
     LoadGame,
     DescendStairs,

@@ -215,6 +215,7 @@ fn render_info_panel(panel: &mut Offscreen, game_state: &GameState) {
     panel.print_frame(0, 0, INFO_PANEL_WIDTH, INFO_PANEL_HEIGHT, true, BackgroundFlag::None, Some("Information"));
 
     panel.print_rect(4, INFO_PANEL_HEIGHT-1, INFO_PANEL_WIDTH - 2, 0, format!("Tick: {}", game_state.scheduler.time));
+    panel.print_rect(1, INFO_PANEL_HEIGHT-3, INFO_PANEL_WIDTH - 2, 0, format!("Level: {}", game_state.level));
 
     if let Some(memory) = game_state.spawning_pool.get::<components::MapMemory>(game_state.player) {
         if let Some(physics) = game_state.spawning_pool.get::<components::Physics>(game_state.player) {

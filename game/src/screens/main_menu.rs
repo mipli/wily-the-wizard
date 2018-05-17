@@ -29,26 +29,26 @@ impl MainMenuScreen {
 }
 
 impl Screen for MainMenuScreen {
-    fn status(&self, _state: &mut GameState) -> bool {
-        !self.exit
+    fn should_discard(&self, _state: &mut GameState) -> bool {
+        self.exit
     }
 
-    fn new_screens(&mut self, _state: &mut GameState) -> Vec<Box<Screen>> {
+    fn new_screens(&mut self, _state: &mut GameState) -> Vec<ScreenPointer> {
         if self.create_game {
             self.create_game = false;
             self.running = true;
             self.menu = get_menu(&["(c) Continue", "(n) New Game", "(l) Load Game", "(q) Save and Quit"]);
 
-            vec![Box::new(game_screen::GameScreen::new())]
+            vec![Rc::new(RefCell::new(Box::new(game_screen::GameScreen::new())))]
         } else if self.cont {
             self.cont = false;
             self.running = true;
-            vec![Box::new(game_screen::GameScreen::new())]
+            vec![Rc::new(RefCell::new(Box::new(game_screen::GameScreen::new())))]
         } else if self.load {
             self.cont = false;
             self.running = true;
             self.load = false;
-            vec![Box::new(game_screen::GameScreen::new())]
+            vec![Rc::new(RefCell::new(Box::new(game_screen::GameScreen::new())))]
         } else {
             vec![]
         }

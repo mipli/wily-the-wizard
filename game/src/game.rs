@@ -27,6 +27,7 @@ pub struct GameState {
     pub scheduler: Scheduler,
     pub spatial_table: SpatialTable,
     pub messages: Messages,
+    pub level: u32
 }
 
 impl GameState {
@@ -35,7 +36,7 @@ impl GameState {
         let player = create_player(&mut spawning_pool, MAP_WIDTH, MAP_HEIGHT);
         let mut scheduler = Scheduler::new();
         scheduler.schedule_entity(player, 0, &spawning_pool);
-        let map = create_map(player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler, None);
+        let map = create_map(1, player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler, None);
 
         let mut spatial_table = SpatialTable::new(map.dimensions.x, map.dimensions.y);
         spatial_table.reset(&spawning_pool);
@@ -47,7 +48,8 @@ impl GameState {
             player,
             map,
             scheduler,
-            messages: vec![]
+            messages: vec![],
+            level: 1
         }
     }
 
@@ -59,8 +61,9 @@ impl GameState {
                 }
             }
         }
+        self.level += 1;
 
-        let map = create_map(self.player, MAP_WIDTH, MAP_HEIGHT, &mut self.spawning_pool, &mut self.scheduler, None);
+        let map = create_map(self.level, self.player, MAP_WIDTH, MAP_HEIGHT, &mut self.spawning_pool, &mut self.scheduler, None);
         self.spatial_table.reset(&self.spawning_pool);
         self.map = map;
 

@@ -14,7 +14,7 @@ pub struct InventoryScreen {
     options: HashMap<char, EntityId>,
     selected: Option<EntityId>,
     action: InventoryAction,
-    screens: Vec<Box<Screen>>
+    screens: Vec<ScreenPointer>
 }
 
 pub enum InventoryAction {
@@ -36,11 +36,11 @@ impl InventoryScreen {
 }
 
 impl Screen for InventoryScreen {
-    fn status(&self, _state: &mut GameState) -> bool {
-        !self.exit
+    fn should_discard(&self, _state: &mut GameState) -> bool {
+        self.exit
     }
 
-    fn new_screens(&mut self, _state: &mut GameState) -> Vec<Box<Screen>> {
+    fn new_screens(&mut self, _state: &mut GameState) -> Vec<ScreenPointer> {
         self.screens.drain(..).collect()
     }
 

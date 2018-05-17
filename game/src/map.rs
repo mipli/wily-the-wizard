@@ -90,7 +90,7 @@ pub fn can_walk(position: Point, grid: &SpatialTable, map: &Map) -> bool {
     }
 }
 
-pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler, seed: Option<[u32; 4]>) -> Map{
+pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler, seed: Option<[u32; 4]>) -> Map{
     let creatures = load_creatures();
     let mut rng: XorShiftRng = if let Some(seed) = seed {
         SeedableRng::from_seed(seed)
@@ -102,7 +102,11 @@ pub fn create_map(player: EntityId, width: i32, height: i32, spawning_pool: &mut
     let map = Map::new(&generated);
 
     spawning_pool.set(player, components::Physics{coord: generated.rooms[0].center()});
-    add_down_stairs(generated.stairs.unwrap(), spawning_pool);
+    if level == 1 {
+        add_portal(generated.stairs.unwrap(), spawning_pool);
+    } else {
+        add_down_stairs(generated.stairs.unwrap(), spawning_pool);
+    }
     for room in generated.rooms.iter().skip(1) {
         let p = rng.gen::<f32>();
         if p < 0.6 {
@@ -218,6 +222,16 @@ fn add_down_stairs(pos: Point, spawning_pool: &mut components::SpawningPool) -> 
     spawning_pool.set(stairs, components::Flags{block_sight: false, solid: false});
     stairs
 }
+
+fn add_portal(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
+    let portal = spawning_pool.spawn_entity();
+    spawning_pool.set(portal, components::Visual{always_display: true, glyph: 'X', color: colors::PINK});
+    spawning_pool.set(portal, components::Physics{coord: (pos.x, pos.y).into()});
+    spawning_pool.set(portal, components::Information{name: "portal to salvation".to_string()});
+    spawning_pool.set(portal, components::Flags{block_sight: false, solid: false});
+    portal
+}
+
 
 fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rng: &mut T) -> EntityId {
     let chances = &mut [
