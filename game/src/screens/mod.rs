@@ -130,6 +130,12 @@ impl ScreenManager {
         }
     }
 
+    pub fn post_tick(&mut self, state: &GameState) {
+        for screen in &mut self.screens {
+            screen.borrow_mut().post_tick(state);
+        }
+    }
+
     pub fn handle_input(&mut self, state: &mut GameState) {
         let mut input = Input {
             key: Default::default(),
@@ -168,6 +174,7 @@ pub trait Screen {
     fn handle_input(&mut self, input: &Input, state: &mut GameState) -> ScreenResult;
     fn add_callback(&mut self, _callback: Box<Fn()>) {}
     fn set_creator(&mut self, _screen: ScreenPointer) {}
+    fn post_tick(&mut self, _state: &GameState) {}
     fn close(&mut self) { }
 }
 

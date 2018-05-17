@@ -114,6 +114,7 @@ fn run_game(tcod: &mut Tcod) {
             tcod.add_animation(animation);
         }
 
+        manager.post_tick(&game.state);
         manager.render(t_delta, &mut game.state, &game.fov, tcod);
         manager.add_screens(&mut game.state);
         manager.clear_screens(&mut game.state);

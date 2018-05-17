@@ -46,7 +46,6 @@ impl GameScreen {
     }
 
     pub fn add_win_screen(&mut self) {
-        println!("Adding win screen");
         self.screens.push(Rc::new(RefCell::new(Box::new(WinScreen::new(Box::new(|s| { 
             s.close();
         }))))));
@@ -67,21 +66,9 @@ impl Screen for GameScreen {
     }
 
     fn render(&mut self, delta: f64, state: &mut GameState, _fov: &tcod::map::Map, tcod: &mut render::Tcod) -> (ScreenResult, Option<ModularWindow>) {
-        let stats: Option<components::Stats> = if let Some(stats) = state.spawning_pool.force_get::<components::Stats>(state.player) {
-            Some(stats.clone())
-        } else {
-            self.stats.clone()
-        };
-        let memory: Option<components::MapMemory> = if let Some(memory) = state.spawning_pool.force_get::<components::MapMemory>(state.player) {
-            Some(memory.clone())
-        } else {
-            self.map_memory.clone()
-        };
-        if let Some(stats) = stats {
-            if let Some(memory) = memory {
+        if let Some(ref stats) = self.stats {
+            if let Some(ref memory) = self.map_memory {
                 let screen = render(tcod, &stats, &memory, state, self.omnipotent, delta);
-                self.stats = Some(stats);
-                self.map_memory = Some(memory);
                 return (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}));
             }
         }
@@ -162,6 +149,15 @@ impl Screen for GameScreen {
         }
 
         ScreenResult::Stop
+    }
+
+    fn post_tick(&mut self, state: &GameState) {
+        if let Some(stats) = state.spawning_pool.force_get::<components::Stats>(state.player) {
+            self.stats = Some(stats.clone());
+        }
+        if let Some(memory) = state.spawning_pool.force_get::<components::MapMemory>(state.player) {
+            self.map_memory = Some(memory.clone());
+        }
     }
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
