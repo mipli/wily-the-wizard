@@ -3,6 +3,7 @@ pub enum Spells {
     LightningStrike,
     Confusion,
     MagicMissile,
+    RayOfFrost,
     Heal,
     Fog
 }
@@ -11,7 +12,8 @@ pub enum Spells {
 pub enum SpellTargetType {
     Entity,
     Closest,
-    Spot
+    Spot,
+    Ray
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -26,6 +28,15 @@ pub struct Spell {
 impl Spell {
     pub fn create(spl: Spells) -> Spell {
         match spl {
+            Spells::RayOfFrost => {
+                Spell {
+                    name: "Ray of Frost".to_string(),
+                    kind: Spells::RayOfFrost,
+                    power: 1,
+                    range: 10,
+                    target: SpellTargetType::Ray
+                }
+            },
             Spells::Fog => {
                 Spell {
                     name: "Fog".to_string(),

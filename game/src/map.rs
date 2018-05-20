@@ -278,11 +278,16 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
             weight: 1,
             item: "shield"
         },
+        Weighted {
+            weight: 100,
+            item: "frost"
+        },
     ];
 
     let choice = WeightedChoice::new(chances);
 
     match choice.ind_sample(rng) {
+        "frost" => add_frost_scroll(pos, spawning_pool),
         "healing" => add_healing_potion(pos, spawning_pool),
         "scroll" => add_lightning_scroll(pos, spawning_pool),
         "confuse" => add_confusion_scroll(pos, spawning_pool),
@@ -310,6 +315,21 @@ fn add_sword(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entity
     item
 }
 
+fn add_frost_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
+    let item = spawning_pool.spawn_entity();
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 50, g: 150, b: 150}});
+    spawning_pool.set(item, components::Physics{coord: pos});
+    spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
+    spawning_pool.set(item, components::Information{name: "scroll of frost".to_string()});
+    spawning_pool.set(item, components::Item{
+        on_use: Some(components::OnUseCallback::Spell(spells::Spells::RayOfFrost)),
+        equip: None,
+        kind: components::ItemKind::Scroll,
+        statistics_bonus: None
+    });
+    item
+}
+
 fn add_confusion_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 130, g: 50, b: 130}});
@@ -327,7 +347,7 @@ fn add_confusion_scroll(pos: Point, spawning_pool: &mut components::SpawningPool
 
 fn add_lightning_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
     let item = spawning_pool.spawn_entity();
-    spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 0, g: 150, b: 180}});
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 0, g: 100, b: 180}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
     spawning_pool.set(item, components::Information{name: "scroll of lightning".to_string()});

@@ -1,3 +1,4 @@
+use tcod::line::{Line};
 use geo::*;
 use spawning_pool::{EntityId};
 use utils;
@@ -66,6 +67,16 @@ enum SpellTarget {
 
 fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, state: &GameState, reaction_actions: &mut Vec<Action>) -> bool {
     let spell_target = match spell.target {
+        SpellTargetType::Ray => {
+            if let Some(ActionTarget::Position(target)) = target {
+                match get_ray_target(caster.unwrap(), target, state) {
+                    Some(target) => Some(SpellTarget::Entity(target)),
+                    None => None
+                }
+            } else {
+                None
+            }
+        },
         SpellTargetType::Entity => {
             if let Some(ActionTarget::Entity(target)) = target {
                 Some(SpellTarget::Entity(target))
@@ -93,6 +104,17 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, s
         return false;
     }
     match spell.kind {
+        Spells::RayOfFrost => {
+            let target = match spell_target {
+                Some(SpellTarget::Entity(id)) => id,
+                _ => return false
+            };
+            reaction_actions.push(Action{
+                actor: caster,
+                target: Some(ActionTarget::Entity(target)),
+                command: Command::TakeDamage{damage: spell.power}
+            });
+        },
         Spells::Fog => {
             let target = match spell_target {
                 Some(SpellTarget::Position(pos)) => pos,
@@ -175,4 +197,27 @@ fn get_closest_target(caster: EntityId, state: &GameState) -> Option<EntityId> {
         }
     }
     None
+}
+
+fn get_ray_target(caster: EntityId, end: Point, state: &GameState) -> Option<EntityId> {
+    use components::*;
+    let start = get_entity_position(caster, state)?;
+    let line = Line::new((start.x, start.y), (end.x, end.y));
+    let mut target: Option<EntityId> = None;
+    for (x, y) in line {
+        match state.spatial_table.get((x, y)) {
+            Some(cell) if cell.solid && !cell.entities.is_empty() => {
+                for entity in &cell.entities {
+                    if state.spawning_pool.get::<Stats>(*entity).is_some() {
+                        target = Some(*entity);
+                    }
+                }
+            },
+            _ => {}
+        }
+        if target.is_some() {
+            break;
+        }
+    }
+    target
 }

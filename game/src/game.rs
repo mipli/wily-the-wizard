@@ -87,7 +87,8 @@ pub struct Game {
 pub enum WaitResult {
     Wait,
     RequireTarget{action: Action},
-    RequireSpot{action: Action}
+    RequireSpot{action: Action},
+    RequireRay{action: Action}
 }
 
 pub enum TickResult {
@@ -139,10 +140,11 @@ impl Game {
         if require_information {
             if let Some(ref action) = self.current_action {
                 if let Command::CastSpell{ref spell} = action.command {
-                    if spell.target == spells::SpellTargetType::Spot {
-                        TickResult::Wait(WaitResult::RequireSpot{action: action.clone()})
-                    } else {
-                        TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
+                    match spell.target {
+                        spells::SpellTargetType::Spot => TickResult::Wait(WaitResult::RequireSpot{action: action.clone()}),
+                        spells::SpellTargetType::Ray => TickResult::Wait(WaitResult::RequireRay{action: action.clone()}),
+                        spells::SpellTargetType::Closest => TickResult::Wait(WaitResult::RequireTarget{action: action.clone()}),
+                        spells::SpellTargetType::Entity => TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
                     }
                 } else {
                     TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
@@ -300,6 +302,7 @@ fn check_require_information(action: &Action) -> bool {
     match action.command {
         Command::CastSpell{ref spell} => {
             match spell.target {
+                spells::SpellTargetType::Ray => action.target.is_none(),
                 spells::SpellTargetType::Entity => action.target.is_none(),
                 spells::SpellTargetType::Spot => action.target.is_none(),
                 spells::SpellTargetType::Closest => false
