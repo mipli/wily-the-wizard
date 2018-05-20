@@ -160,7 +160,20 @@ impl Game {
             self.state.spatial_table.reset(&self.state.spawning_pool);
             TickResult::Passed
         } else {
-            TickResult::Wait(WaitResult::Wait)
+            let entity = self.state.scheduler.get_current();
+            if entity != self.state.player {
+                println!("{} could not perform action at {}", entity, self.state.scheduler.time);
+                // only player entity can delay the game tick
+                self.state.scheduler.schedule_entity(entity, 500, &self.state.spawning_pool);
+                self.tick_time = 0;
+                self.current_action = None;
+                self.rejection_queue.clear();
+                self.reaction_queue.clear();
+                self.state.spatial_table.reset(&self.state.spawning_pool);
+                TickResult::Passed
+            } else {
+                TickResult::Wait(WaitResult::Wait)
+            }
         }
     }
 
@@ -238,8 +251,18 @@ impl Game {
                         None
                     }
                 },
-               AI::Basic => ai::perform_basic_ai(self.state.scheduler.get_current(), &mut self.state),
-               AI::SpellCaster => ai::perform_spell_ai(self.state.scheduler.get_current(), &mut self.state),
+                _ => {
+                    let acts = match ai {
+                        AI::Basic => ai::perform_basic_ai(self.state.scheduler.get_current(), &mut self.state),
+                        AI::SpellCaster => ai::perform_spell_ai(self.state.scheduler.get_current(), &mut self.state),
+                        _ => None
+                    };
+                    acts.or_else(|| Some(vec![Action {
+                        actor: Some(self.state.scheduler.get_current()),
+                        target: None,
+                        command: Command::Wait
+                    }]))
+                }
             }
         } else {
             panic!("Trying to get entity actions on entity without controller");

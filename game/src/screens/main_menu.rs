@@ -1,4 +1,5 @@
 use tcod::console::*;
+use components;
 use tcod::colors;
 use tcod::input::{KeyCode};
 use screens::*;
@@ -10,6 +11,7 @@ pub struct MainMenuScreen {
     create_game: bool,
     load: bool,
     cont: bool,
+    alive: bool,
     running: bool,
     menu: Offscreen
 }
@@ -19,11 +21,12 @@ impl MainMenuScreen {
 
         MainMenuScreen {
             exit: false,
+            alive: true,
             load: false,
             create_game: false,
             cont: false,
             running: false,
-            menu: get_menu(&["(n) New Game", "(l) Load Game", "(q) Quit"])
+            menu: get_menu(&[""])
         }
     }
 }
@@ -37,10 +40,9 @@ impl Screen for MainMenuScreen {
         if self.create_game {
             self.create_game = false;
             self.running = true;
-            self.menu = get_menu(&["(c) Continue", "(n) New Game", "(l) Load Game", "(q) Save and Quit"]);
 
             vec![Rc::new(RefCell::new(Box::new(game_screen::GameScreen::new())))]
-        } else if self.cont {
+        } else if self.alive && self.cont {
             self.cont = false;
             self.running = true;
             vec![Rc::new(RefCell::new(Box::new(game_screen::GameScreen::new())))]
@@ -76,6 +78,16 @@ impl Screen for MainMenuScreen {
     }
 
     fn tick(&mut self, state: &mut GameState, _tcod: &mut render::Tcod, actions: &mut Vec<Action>) -> ScreenResult {
+        self.alive = if let Some(stats) = state.spawning_pool.get::<components::Stats>(state.player) {
+            stats.health > 0
+        } else {
+            false
+        };
+        if self.alive && self.running {
+            self.menu = get_menu(&["(c) Continue", "(n) New Game", "(l) Load Game", "(q) Save and Quit"]);
+        } else {
+            self.menu = get_menu(&["(n) New Game", "(l) Load Game", "(q) Quit"]);
+        }
         if self.exit && self.running {
             save_game(state);
         }

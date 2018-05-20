@@ -98,11 +98,11 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
         rand::weak_rng()
     };
 
-    let generated = bsp::generate(width, height, 5, &mut rng);
+    let generated = bsp::generate(width, height, 6, &mut rng);
     let map = Map::new(&generated);
 
     spawning_pool.set(player, components::Physics{coord: generated.rooms[0].center()});
-    if level == 1 {
+    if level == 5 {
         add_portal(generated.stairs.unwrap(), spawning_pool);
     } else {
         add_down_stairs(generated.stairs.unwrap(), spawning_pool);
@@ -110,13 +110,20 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
     for room in generated.rooms.iter().skip(1) {
         let p = rng.gen::<f32>();
         if p < 0.6 {
-            let difficulty = add_monsters(room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
+            let difficulty = add_monsters(level, room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
             match difficulty {
                 RoomDifficulty::Normal | RoomDifficulty::Difficult => {
-                    let entity = add_item(room.center(), spawning_pool, &mut rng);
-                    scheduler.schedule_entity(entity, 0, spawning_pool);
+                    if rng.gen::<f32>() > 0.4 {
+                        let entity = add_item(room.center(), spawning_pool, &mut rng);
+                        scheduler.schedule_entity(entity, 0, spawning_pool);
+                    }
                 },
-                RoomDifficulty::Easy => {}
+                RoomDifficulty::Easy => {
+                    if rng.gen::<f32>() > 0.8 {
+                        let entity = add_item(room.center(), spawning_pool, &mut rng);
+                        scheduler.schedule_entity(entity, 0, spawning_pool);
+                    }
+                }
             };
         } else if p < 0.8 {
             let entity = add_item(room.center(), spawning_pool, &mut rng);
@@ -142,14 +149,14 @@ enum RoomDifficulty {
     Difficult
 }
 
-fn add_monsters<T: Rng>(room: &Rect, creatures: &Vec<CreatureData>, scheduler: &mut Scheduler, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, rng: &mut T) -> RoomDifficulty {
+fn add_monsters<T: Rng>(level: u32, room: &Rect, creatures: &Vec<CreatureData>, scheduler: &mut Scheduler, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, rng: &mut T) -> RoomDifficulty {
     let chances = &mut [
         Weighted {
-            weight: 5,
+            weight: 7,
             item: RoomDifficulty::Easy
         },
         Weighted {
-            weight: 3,
+            weight: 5,
             item: RoomDifficulty::Normal
         },
         Weighted {
@@ -164,18 +171,34 @@ fn add_monsters<T: Rng>(room: &Rect, creatures: &Vec<CreatureData>, scheduler: &
     match choice {
         RoomDifficulty::Easy => {
             add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
-            add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            if level >= 2 {
+                add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            }
+            if level >= 3 {
+                add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            }
         },
         RoomDifficulty::Normal => {
             add_creature(&creatures[1], room, width, height, scheduler, spawning_pool, rng);
             add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
-            add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            if level >= 2 {
+                add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            }
+            if level >= 3 {
+                add_creature(&creatures[1], room, width, height, scheduler, spawning_pool, rng);
+            }
         },
         RoomDifficulty::Difficult => {
             add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
             add_creature(&creatures[1], room, width, height, scheduler, spawning_pool, rng);
-            add_creature(&creatures[1], room, width, height, scheduler, spawning_pool, rng);
             add_creature(&creatures[2], room, width, height, scheduler, spawning_pool, rng);
+            if level >= 2 {
+                add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            }
+            if level >= 3 {
+                add_creature(&creatures[1], room, width, height, scheduler, spawning_pool, rng);
+                add_creature(&creatures[2], room, width, height, scheduler, spawning_pool, rng);
+            }
         }
     }
     choice
@@ -236,23 +259,23 @@ fn add_portal(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entit
 fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rng: &mut T) -> EntityId {
     let chances = &mut [
         Weighted {
-            weight: 30,
+            weight: 5,
             item: "healing"
         },
         Weighted {
-            weight: 30,
+            weight: 1,
             item: "scroll"
         },
         Weighted {
-            weight: 50,
+            weight: 2,
             item: "confuse"
         },
         Weighted {
-            weight: 10,
+            weight: 1,
             item: "sword"
         },
         Weighted {
-            weight: 10,
+            weight: 1,
             item: "shield"
         },
     ];
