@@ -15,6 +15,12 @@ pub struct Action {
     pub command: Command
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum LevelUpChoice {
+    Strength,
+    Defense
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Command {
     Win,
@@ -38,6 +44,8 @@ pub enum Command {
     LightningStrike{damage: i32},
     Confuse,
     Slow,
+    GainPoint,
+    LevelUp(LevelUpChoice),
     Wait,
     Abort
 }

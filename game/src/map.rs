@@ -282,6 +282,10 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
             weight: 3,
             item: "frost"
         },
+        Weighted {
+            weight: 300,
+            item: "experience"
+        },
     ];
 
     let choice = WeightedChoice::new(chances);
@@ -289,6 +293,7 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
     match choice.ind_sample(rng) {
         "frost" => add_frost_scroll(pos, spawning_pool),
         "healing" => add_healing_potion(pos, spawning_pool),
+        "experience" => add_experience_potion(pos, spawning_pool),
         "scroll" => add_lightning_scroll(pos, spawning_pool),
         "confuse" => add_confusion_scroll(pos, spawning_pool),
         "sword" => add_sword(pos, spawning_pool),
@@ -386,6 +391,21 @@ fn add_healing_potion(pos: Point, spawning_pool: &mut components::SpawningPool) 
     spawning_pool.set(item, components::Information{name: "potion of healing".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::Heal)),
+        equip: None,
+        kind: components::ItemKind::Potion,
+        statistics_bonus: None
+    });
+    item
+}
+
+fn add_experience_potion(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
+    let item = spawning_pool.spawn_entity();
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '!', color: colors::LIGHTEST_GREEN});
+    spawning_pool.set(item, components::Physics{coord: pos});
+    spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
+    spawning_pool.set(item, components::Information{name: "potion of experience".to_string()});
+    spawning_pool.set(item, components::Item{
+        on_use: Some(components::OnUseCallback::Spell(spells::Spells::Experience)),
         equip: None,
         kind: components::ItemKind::Potion,
         statistics_bonus: None

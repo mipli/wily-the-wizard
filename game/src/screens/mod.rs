@@ -22,6 +22,7 @@ mod game_over;
 mod win;
 mod utils;
 mod target;
+mod level_up;
 mod spell_entity_target;
 mod spell_position_target;
 mod spell_ray_target;
@@ -33,6 +34,7 @@ pub use self::target::TargetScreen;
 pub use self::spell_entity_target::SpellEntityTargetScreen;
 pub use self::spell_position_target::SpellPositionTargetScreen;
 pub use self::spell_ray_target::SpellRayTargetScreen;
+pub use self::level_up::LevelUpScreen;
 
 pub struct Input {
     key: Key,

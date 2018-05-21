@@ -105,11 +105,50 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
             perform_destroy_item(action, game_state);
             ActionResult::Performed{time: 0}
         },
+        Command::LevelUp(..) => {
+            perform_level_up(action, game_state);
+            ActionResult::Performed{time: 0}
+        },
+        Command::GainPoint => {
+            perform_gain_point(action, game_state);
+            ActionResult::Performed{time: 100}
+        },
         _ => {
             ActionResult::Performed{time: 0}
         }
     }
 }
+fn perform_level_up(action: &Action, state: &mut GameState) {
+    use components::*;
+
+    if let Some(actor) = action.actor {
+        if let Command::LevelUp(ref choice) = action.command {
+            if let Some(stats) = state.spawning_pool.get_mut::<Stats>(actor) {
+                match choice {
+                    LevelUpChoice::Strength => {
+                        state.messages.log(MessageLevel::Important, "The player grows stronger");
+                        stats.strength += 2
+                    },
+                    LevelUpChoice::Defense => {
+                        state.messages.log(MessageLevel::Important, "The player's skin thickens");
+                        stats.defense += 1
+                    } 
+                }
+            }
+        }
+    }
+}
+
+fn perform_gain_point(action: &Action, state: &mut GameState) {
+    use components::*;
+
+    if let Some(ActionTarget::Entity(target)) = action.target {
+        if let Some(stats) = state.spawning_pool.get_mut::<Stats>(target) {
+            stats.points += 1;
+        }
+    }
+}
+
 fn perform_spawn_fog(action: &Action, state: &mut GameState) {
     let coords = if let Command::SpawnFog{pos} = action.command {
         let mut coords: Vec<Point> = get_neigbours(pos.x, pos.y, false).into_iter().filter(|&pos| {

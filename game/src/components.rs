@@ -108,6 +108,7 @@ pub struct Stats {
     pub health: i32,
     pub strength: i32,
     pub defense: i32,
+    pub points: i32,
     pub effects: HashMap<Effect, i32>
 }
 
@@ -119,6 +120,7 @@ impl Stats {
             health: max_health,
             strength,
             defense,
+            points: 0,
             effects: Default::default()
         }
     }

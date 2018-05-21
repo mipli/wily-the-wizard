@@ -174,6 +174,17 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, s
                 target: Some(ActionTarget::Entity(target)),
                 command: Command::Heal{amount: spell.power}
             });
+        },
+        Spells::Experience => {
+            let target = match spell_target {
+                Some(SpellTarget::Entity(id)) => id,
+                _ => return false
+            };
+            reaction_actions.push(Action{
+                actor: caster,
+                target: Some(ActionTarget::Entity(target)),
+                command: Command::GainPoint
+            });
         }
     }
     return true;

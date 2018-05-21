@@ -1,4 +1,6 @@
  #![feature(drain_filter)]
+use std::rc::Rc;
+use std::cell::RefCell;
 
 extern crate time;
 extern crate yaml_rust;
@@ -118,6 +120,13 @@ fn run_game(tcod: &mut Tcod) {
         manager.render(t_delta, &mut game.state, &game.fov, tcod);
         manager.add_screens(&mut game.state);
         manager.clear_screens(&mut game.state);
+
+        if let Some(stats) = game.state.spawning_pool.get_mut::<components::Stats>(game.state.player) {
+            if stats.points > 0 {
+                manager.add_screen(Rc::new(RefCell::new(Box::new(screens::LevelUpScreen::new()))));
+                stats.points -= 1;
+            }
+        }
 
         match tick_result {
             TickResult::Passed => {

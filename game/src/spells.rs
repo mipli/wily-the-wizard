@@ -4,6 +4,7 @@ pub enum Spells {
     Confusion,
     MagicMissile,
     RayOfFrost,
+    Experience,
     Heal,
     Fog
 }
@@ -28,6 +29,15 @@ pub struct Spell {
 impl Spell {
     pub fn create(spl: Spells) -> Spell {
         match spl {
+            Spells::Experience => {
+                Spell {
+                    name: "Experience".to_string(),
+                    kind: Spells::Experience,
+                    power: 1,
+                    range: 10,
+                    target: SpellTargetType::Entity
+                }
+            },
             Spells::RayOfFrost => {
                 Spell {
                     name: "Ray of Frost".to_string(),
