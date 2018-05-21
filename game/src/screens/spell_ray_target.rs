@@ -18,13 +18,14 @@ pub struct SpellRayTargetScreen {
 }
 
 impl SpellRayTargetScreen {
-    pub fn new(origin: Point, range: i32, _state: &GameState, callback: Box<Fn(Point, &mut GameState, &mut Vec<Action>)>) -> Self {
+    pub fn new(origin: Point, range: i32, state: &GameState, callback: Box<Fn(Point, &mut GameState, &mut Vec<Action>)>) -> Self {
+        let position = get_closest_entity_position(origin, range, state).unwrap_or(origin);
         SpellRayTargetScreen {
             exit: false,
             valid: false,
             selected: false,
-            position: origin,
             range: range as f32,
+            position,
             origin,
             callback
         }
@@ -32,6 +33,23 @@ impl SpellRayTargetScreen {
 
     fn position_is_valid(&self, memory: &components::MapMemory, map: &Map) -> bool {
         self.origin.distance(self.position) <= self.range && map.is_floor(self.position) && memory.is_visible(self.position.x, self.position.y)
+    }
+}
+
+fn get_closest_entity_position(origin: Point, range: i32, state: &GameState) -> Option<Point> {
+    use components::*;
+    let ents = state.spatial_table.get_by_proximity(origin, range);
+    let map_memory = state.spawning_pool.get::<MapMemory>(state.player)?;
+    let entities: Vec<_> = ents.iter()
+        .filter(|(pos, _)| map_memory.is_visible(pos.x, pos.y))
+        .filter(|(_, id)| state.spawning_pool.get::<Stats>(*id).is_some())
+        .map(|(_, id)| *id)
+        .collect();
+    if entities.len() > 1 {
+        let physics = state.spawning_pool.get::<Physics>(entities[1])?;
+        Some(physics.coord)
+    } else {
+        None
     }
 }
 

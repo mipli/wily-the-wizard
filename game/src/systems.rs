@@ -14,18 +14,8 @@ use game::*;
 use components;
 
 pub fn confusion(entity: EntityId, state: &mut GameState) -> Option<Action> {
-    let action = get_confusion_action(entity, state);
-
-    if action.is_some() {
-        reduce_timer(entity, state);
-    }
-
-    action
-}
-
-fn get_confusion_action(entity: EntityId, state: &mut GameState) -> Option<Action> {
-    let status_effects = state.spawning_pool.get::<components::StatusEffects>(entity)?;
-    let _ = status_effects.confused?;
+    use components::*;
+    let _ = state.spawning_pool.get::<Stats>(entity)?.effects.get(&Effect::Confuse)?;
     let entity_position = get_entity_position(entity, state)?;
     let mut neighbours = get_neigbours(entity_position.x, entity_position.y, false);
     rand::thread_rng().shuffle(&mut neighbours);
@@ -42,20 +32,22 @@ fn get_confusion_action(entity: EntityId, state: &mut GameState) -> Option<Actio
     None
 }
 
+/*
 fn reduce_timer(entity: EntityId, state: &mut GameState) {
+    use components::*;
     let name = utils::get_entity_name(entity, &state.spawning_pool);
-    if let Some(status_effects) = state.spawning_pool.get_mut::<components::StatusEffects>(entity) {
-        if let Some(confused) = status_effects.confused {
-            let remain = confused - 1;
-            status_effects.confused =  if remain > 0 {
-                Some(remain)
-            } else {
-                state.messages.log(MessageLevel::Info, format!("The {} is longer confused", name));
-                None
-            };
+    if let Some(stats) = state.spawning_pool.get_mut::<Stats>(entity) {
+        let remain = match stats.effects.get(&Effect::Confuse) {
+            Some(time) => time >= &state.scheduler.time,
+            None => false
+        };
+        if !remain {
+            stats.effects.remove(&Effect::Confuse);
+            state.messages.log(MessageLevel::Info, format!("The {} is longer confused", name));
         }
     }
 }
+*/
 
 pub struct DurationSystem {
     last_time: i32
@@ -74,6 +66,42 @@ impl DurationSystem {
             return;
         }
         self.last_time = time;
+        self.duration(state);
+        self.effects(state);
+    }
+
+    fn effects(&mut self, state: &mut GameState) {
+        let ids: Vec<EntityId> = state.spawning_pool.get_all::<components::Stats>()
+            .iter()
+            .map(|(id, _)| *id)
+            .collect();
+        for id  in ids {
+            self.clear_effects(id, state);
+        }
+    }
+
+    fn clear_effects(&self, entity: EntityId, state: &mut GameState) {
+        use components::*;
+
+        let name = utils::get_entity_name(entity, &state.spawning_pool);
+        let current_time = state.scheduler.time;
+        if let Some(stats) = state.spawning_pool.get_mut::<Stats>(entity) {
+            let remove: Vec<_> = stats.effects.iter().filter_map(|(e, t)| {
+                println!("Effect time {}, {}", t, current_time);
+                if *t < current_time {
+                    Some(e.clone())
+                } else {
+                    None
+                }
+            }).collect();
+            for r in remove {
+                state.messages.log(MessageLevel::Info, format!("The {} is longer {}", name, r));
+                stats.effects.remove(&r);
+            }
+        }
+    }
+
+    fn duration(&mut self, state: &mut GameState) {
         let ids: Vec<EntityId> = state.spawning_pool.get_all::<components::Duration>()
             .iter()
             .map(|(id, _)| *id)

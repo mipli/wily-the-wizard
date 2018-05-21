@@ -154,7 +154,8 @@ impl Game {
             }
         } else if performed_action {
             let entity = self.state.scheduler.get_current();
-            self.state.scheduler.schedule_entity(entity, self.tick_time, &self.state.spawning_pool);
+            let tick_time = update_tick_time(self.tick_time, &self.state);
+            self.state.scheduler.schedule_entity(entity, tick_time, &self.state.spawning_pool);
             self.tick_time = 0;
             self.current_action = None;
             self.rejection_queue.clear();
@@ -298,6 +299,19 @@ impl Game {
     }
 }
 
+fn update_tick_time(time: i32, state: &GameState) -> i32 {
+    use components::*;
+
+    if let Some(stats) = state.spawning_pool.get::<Stats>(state.scheduler.get_current()) {
+        match stats.effects.get(&Effect::Slow) {
+            Some(_) => time * 2,
+            None => time
+        }
+    } else {
+        time
+    }
+}
+
 fn check_require_information(action: &Action) -> bool {
     match action.command {
         Command::CastSpell{ref spell} => {
@@ -371,12 +385,11 @@ fn create_player(spawning_pool: &mut components::SpawningPool, width: i32, heigh
     spawning_pool.set(player, components::Inventory{items: vec![]});
     spawning_pool.set(player, components::MapMemory::new(width, height));
     spawning_pool.set(player, components::Equipment{items: Default::default()});
-    spawning_pool.set(player, components::Stats{
-        faction: components::Faction::Player,
-        max_health: 10,
-        health: 10,
-        strength: 5,
-        defense: 3
-    });
+    spawning_pool.set(player, components::Stats::new(
+        components::Faction::Player,
+        10,
+        5,
+        3
+    ));
     player
 }

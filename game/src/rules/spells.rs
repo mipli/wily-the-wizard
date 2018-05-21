@@ -114,6 +114,11 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, s
                 target: Some(ActionTarget::Entity(target)),
                 command: Command::TakeDamage{damage: spell.power}
             });
+            reaction_actions.push(Action{
+                actor: caster,
+                target: Some(ActionTarget::Entity(target)),
+                command: Command::Slow
+            });
         },
         Spells::Fog => {
             let target = match spell_target {

@@ -75,13 +75,12 @@ pub fn create_creature(data: &CreatureData, pos: Point, width: i32, height: i32,
     spawning_pool.set(creature, components::Information{
         name: data.name.to_string()
     });
-    spawning_pool.set(creature, components::Stats{
-        faction: components::Faction::Enemy,
-        max_health: data.health,
-        health: data.health,
-        strength: data.strength,
-        defense: data.defense
-    });
+    spawning_pool.set(creature, components::Stats::new(
+        components::Faction::Enemy,
+        data.health,
+        data.strength,
+        data.defense
+    ));
     spawning_pool.set(creature, components::MapMemory::new(width, height));
     spawning_pool.set(creature, components::AiMemory::new());
     if data.ai == components::AI::SpellCaster {

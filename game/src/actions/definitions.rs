@@ -37,6 +37,7 @@ pub enum Command {
     PickUpItem{item_id: EntityId},
     LightningStrike{damage: i32},
     Confuse,
+    Slow,
     Wait,
     Abort
 }

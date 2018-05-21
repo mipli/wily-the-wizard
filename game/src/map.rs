@@ -279,7 +279,7 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
             item: "shield"
         },
         Weighted {
-            weight: 100,
+            weight: 3,
             item: "frost"
         },
     ];

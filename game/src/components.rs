@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use std;
 use tcod::colors;
 use geo::*;
@@ -85,13 +86,42 @@ pub enum Faction {
     Enemy
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub enum Effect {
+    Slow,
+    Confuse
+}
+
+impl fmt::Display for Effect {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Effect::Slow => write!(f, "slow"),
+            Effect::Confuse => write!(f, "confuse")
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
     pub faction: Faction,
     pub max_health: i32,
     pub health: i32,
     pub strength: i32,
-    pub defense: i32
+    pub defense: i32,
+    pub effects: HashMap<Effect, i32>
+}
+
+impl Stats {
+    pub fn new(faction: Faction, max_health: i32, strength: i32, defense: i32) -> Stats {
+        Stats {
+            faction,
+            max_health,
+            health: max_health,
+            strength,
+            defense,
+            effects: Default::default()
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -211,11 +241,6 @@ pub struct Equipment {
     pub items: HashMap<EquipmentSlot, EntityId>
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StatusEffects {
-    pub confused: Option<i32>
-}
-
 create_spawning_pool!(
     (Visual, visual, VectorStorage),
     (Physics, physics, VectorStorage),
@@ -229,7 +254,6 @@ create_spawning_pool!(
     (Item, item, HashMapStorage),
     (Inventory, inventory, HashMapStorage),
     (Equipment, equipment, HashMapStorage),
-    (StatusEffects, status_effects, HashMapStorage),
     (SpellBook, spell_book, HashMapStorage),
     (Duration, duration, HashMapStorage)
 );

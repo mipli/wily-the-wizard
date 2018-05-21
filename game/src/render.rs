@@ -132,7 +132,7 @@ struct EntityRendingInfo {
     color: colors::Color,
     solid: bool,
     always_display: bool,
-    visible: bool
+    visible: bool,
 }
 
 fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool) {
@@ -142,17 +142,27 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
             let visual = game_state.spawning_pool.get::<components::Visual>(id);
             let physics = game_state.spawning_pool.get::<components::Physics>(id);
             let flags = game_state.spawning_pool.get::<components::Flags>(id);
+            let stats = game_state.spawning_pool.get::<components::Stats>(id);
             if physics.is_none() || visual.is_none() || flags.is_none() {
                 return None;
             }
+            let slowed = match stats {
+                Some(stats) => stats.effects.get(&components::Effect::Slow).is_some(),
+                None => false
+            };
+            let color = if slowed {
+                visual.unwrap().color + colors::SKY
+            } else {
+                visual.unwrap().color
+            };
             let pos = physics.unwrap().coord;
             Some(EntityRendingInfo {
                 pos,
+                color,
                 glyph: visual.unwrap().glyph,
-                color: visual.unwrap().color,
                 solid: flags.unwrap().solid,
                 always_display: visual.unwrap().always_display,
-                visible: memory.is_visible(pos.x, pos.y)
+                visible: memory.is_visible(pos.x, pos.y),
             })
         }).filter(|info| {
             if let Some(info) = info {

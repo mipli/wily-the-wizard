@@ -85,6 +85,10 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
                 ActionResult::Failed
             }
         },
+        Command::Slow => {
+            perform_slow(action, game_state);
+            ActionResult::Performed{time: 0}
+        },
         Command::CastSpell{ref spell} => {
             let actor = utils::get_actor_name(action, &game_state.spawning_pool);
             let msg = match action.target {
@@ -146,27 +150,35 @@ fn create_fog_at(pos: Point, spawning_pool: &mut SpawningPool) {
         name: "Fog".to_string()
     });
 }
+fn perform_slow(action: &Action, state: &mut GameState) {
+    use components::*;
 
-fn perform_confuse(action: &Action, game_state: &mut GameState) -> bool {
+    if let Some(ActionTarget::Entity(target)) = action.target {
+        if let Some(stats) = state.spawning_pool.get_mut::<Stats>(target) {
+            stats.effects.insert(Effect::Slow, state.scheduler.time + 500);
+        }
+    }
+}
+
+fn perform_confuse(action: &Action, state: &mut GameState) -> bool {
+    use components::*;
+
     let performed = if let Some(ActionTarget::Entity(target)) = action.target {
-        if let Some(status_effects) = game_state.spawning_pool.get_mut::<components::StatusEffects>(target) {
-            status_effects.confused = Some(5);
+        if let Some(stats) = state.spawning_pool.get_mut::<Stats>(target) {
+            stats.effects.insert(Effect::Confuse, state.scheduler.time + 500);
             return true;
         };
-        game_state.spawning_pool.set(target, components::StatusEffects{
-            confused: Some(5)
-        });
-        true
+        false
     } else {
         false
     };
 
     if performed {
-        let name = utils::get_target_name(action, &game_state.spawning_pool);
-        if action.actor.unwrap() == game_state.player {
-            game_state.messages.log(MessageLevel::Important, format!("The {} is confused!", name));
+        let name = utils::get_target_name(action, &state.spawning_pool);
+        if action.actor.unwrap() == state.player {
+            state.messages.log(MessageLevel::Important, format!("The {} is confused!", name));
         } else {
-            game_state.messages.log(MessageLevel::Info, format!("The {} is confused!", name));
+            state.messages.log(MessageLevel::Info, format!("The {} is confused!", name));
         };
     }
     performed
