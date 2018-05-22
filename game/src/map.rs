@@ -107,27 +107,36 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
     } else {
         add_down_stairs(generated.stairs.unwrap(), spawning_pool);
     }
-    for room in generated.rooms.iter().skip(1) {
-        let p = rng.gen::<f32>();
-        if p < 0.6 {
-            let difficulty = add_monsters(level, room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
-            match difficulty {
-                RoomDifficulty::Normal | RoomDifficulty::Difficult => {
-                    if rng.gen::<f32>() > 0.4 {
-                        let entity = add_item(room.center(), spawning_pool, &mut rng);
-                        scheduler.schedule_entity(entity, 0, spawning_pool);
-                    }
-                },
-                RoomDifficulty::Easy => {
-                    if rng.gen::<f32>() > 0.8 {
-                        let entity = add_item(room.center(), spawning_pool, &mut rng);
-                        scheduler.schedule_entity(entity, 0, spawning_pool);
-                    }
+    let mut experience_index = rng.gen_range(3, generated.rooms.len() - 1) as usize;
+    add_experience_potion(generated.rooms[experience_index].center(), spawning_pool);
+    experience_index -= 1;
+    for (idx, room) in generated.rooms.iter().skip(1).enumerate() {
+        if experience_index == idx {
+            let _ = add_monsters(level + 2, room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
+        } else {
+            let p = rng.gen::<f32>();
+            if p < 0.6 {
+                let difficulty = add_monsters(level, room, &creatures, scheduler, width, height, spawning_pool, &mut rng);
+                if idx != experience_index {
+                    match difficulty {
+                        RoomDifficulty::Normal | RoomDifficulty::Difficult => {
+                            if rng.gen::<f32>() > 0.4 {
+                                let entity = add_item(room.center(), spawning_pool, &mut rng);
+                                scheduler.schedule_entity(entity, 0, spawning_pool);
+                            }
+                        },
+                        RoomDifficulty::Easy => {
+                            if rng.gen::<f32>() > 0.8 {
+                                let entity = add_item(room.center(), spawning_pool, &mut rng);
+                                scheduler.schedule_entity(entity, 0, spawning_pool);
+                            }
+                        }
+                    };
                 }
-            };
-        } else if p < 0.8 {
-            let entity = add_item(room.center(), spawning_pool, &mut rng);
-            scheduler.schedule_entity(entity, 0, spawning_pool);
+            } else if p < 0.8 {
+                let entity = add_item(room.center(), spawning_pool, &mut rng);
+                scheduler.schedule_entity(entity, 0, spawning_pool);
+            }
         }
     }
 
@@ -281,11 +290,7 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
         Weighted {
             weight: 3,
             item: "frost"
-        },
-        Weighted {
-            weight: 300,
-            item: "experience"
-        },
+        }
     ];
 
     let choice = WeightedChoice::new(chances);
@@ -293,7 +298,6 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
     match choice.ind_sample(rng) {
         "frost" => add_frost_scroll(pos, spawning_pool),
         "healing" => add_healing_potion(pos, spawning_pool),
-        "experience" => add_experience_potion(pos, spawning_pool),
         "scroll" => add_lightning_scroll(pos, spawning_pool),
         "confuse" => add_confusion_scroll(pos, spawning_pool),
         "sword" => add_sword(pos, spawning_pool),
@@ -399,6 +403,7 @@ fn add_healing_potion(pos: Point, spawning_pool: &mut components::SpawningPool) 
 }
 
 fn add_experience_potion(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
+    println!("Adding exp at {}", pos);
     let item = spawning_pool.spawn_entity();
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '!', color: colors::LIGHTEST_GREEN});
     spawning_pool.set(item, components::Physics{coord: pos});
