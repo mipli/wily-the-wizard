@@ -1,15 +1,12 @@
 use tcod::console::*;
 use tcod::colors;
-use tcod::input::{KeyCode};
 use screens::*;
 use screens::utils::{get_menu};
 
-use spawning_pool::{EntityId};
 use actions::{LevelUpChoice, Action, Command};
 
 pub struct LevelUpScreen { 
     exit: bool,
-    selected: Option<EntityId>,
     screens: Vec<ScreenPointer>,
     choice: Option<LevelUpChoice>
 }
@@ -18,7 +15,6 @@ impl LevelUpScreen {
     pub fn new() -> Self {
         LevelUpScreen {
             exit: false,
-            selected: None,
             choice: None,
             screens: vec![]
         }

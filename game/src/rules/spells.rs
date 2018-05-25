@@ -62,6 +62,7 @@ pub fn cast_spell(action: &mut Action, state: &GameState, _rejected_actions: &mu
 
 enum SpellTarget {
     Entity(EntityId),
+    Entities(Vec<EntityId>),
     Position(Point)
 }
 
@@ -69,9 +70,11 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, s
     let spell_target = match spell.target {
         SpellTargetType::Ray => {
             if let Some(ActionTarget::Position(target)) = target {
-                match get_ray_target(caster.unwrap(), target, state) {
-                    Some(target) => Some(SpellTarget::Entity(target)),
-                    None => None
+                let targets = get_ray_targets(caster.unwrap(), target, state);
+                if targets.is_empty() {
+                    None
+                } else {
+                    Some(SpellTarget::Entities(targets))
                 }
             } else {
                 None
@@ -105,20 +108,22 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, s
     }
     match spell.kind {
         Spells::RayOfFrost => {
-            let target = match spell_target {
-                Some(SpellTarget::Entity(id)) => id,
+            let targets = match spell_target {
+                Some(SpellTarget::Entities(ids)) => ids,
                 _ => return false
             };
-            reaction_actions.push(Action{
-                actor: caster,
-                target: Some(ActionTarget::Entity(target)),
-                command: Command::TakeDamage{damage: spell.power}
-            });
-            reaction_actions.push(Action{
-                actor: caster,
-                target: Some(ActionTarget::Entity(target)),
-                command: Command::Slow
-            });
+            for target in &targets {
+                reaction_actions.push(Action{
+                    actor: caster,
+                    target: Some(ActionTarget::Entity(*target)),
+                    command: Command::TakeDamage{damage: spell.power}
+                });
+                reaction_actions.push(Action{
+                    actor: caster,
+                    target: Some(ActionTarget::Entity(*target)),
+                    command: Command::Slow
+                });
+            }
         },
         Spells::Fog => {
             let target = match spell_target {
@@ -215,25 +220,23 @@ fn get_closest_target(caster: EntityId, state: &GameState) -> Option<EntityId> {
     None
 }
 
-fn get_ray_target(caster: EntityId, end: Point, state: &GameState) -> Option<EntityId> {
+fn get_ray_targets(caster: EntityId, end: Point, state: &GameState) -> Vec<EntityId> {
     use components::*;
-    let start = get_entity_position(caster, state)?;
-    let line = Line::new((start.x, start.y), (end.x, end.y));
-    let mut target: Option<EntityId> = None;
-    for (x, y) in line {
-        match state.spatial_table.get((x, y)) {
-            Some(cell) if cell.solid && !cell.entities.is_empty() => {
-                for entity in &cell.entities {
-                    if state.spawning_pool.get::<Stats>(*entity).is_some() {
-                        target = Some(*entity);
+    let mut entities = vec![];
+    if let Some(start) = get_entity_position(caster, state) {
+        let line = Line::new((start.x, start.y), (end.x, end.y));
+        for (x, y) in line {
+            match state.spatial_table.get((x, y)) {
+                Some(cell) if cell.solid && !cell.entities.is_empty() => {
+                    for entity in &cell.entities {
+                        if state.spawning_pool.get::<Stats>(*entity).is_some() {
+                            entities.push(*entity);
+                        }
                     }
-                }
-            },
-            _ => {}
-        }
-        if target.is_some() {
-            break;
+                },
+                _ => {}
+            }
         }
     }
-    target
+    entities
 }

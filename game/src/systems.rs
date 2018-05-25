@@ -87,7 +87,6 @@ impl DurationSystem {
         let current_time = state.scheduler.time;
         if let Some(stats) = state.spawning_pool.get_mut::<Stats>(entity) {
             let remove: Vec<_> = stats.effects.iter().filter_map(|(e, t)| {
-                println!("Effect time {}, {}", t, current_time);
                 if *t < current_time {
                     Some(e.clone())
                 } else {
