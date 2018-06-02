@@ -14,6 +14,7 @@ pub enum SpellTargetType {
     Entity,
     Closest,
     Spot,
+    Projectile,
     Ray
 }
 
@@ -60,9 +61,9 @@ impl Spell {
                 Spell {
                     name: "Magic Missile".to_string(),
                     kind: Spells::MagicMissile,
-                    power: 2,
-                    range: 5,
-                    target: SpellTargetType::Entity
+                    power: 5,
+                    range: 10,
+                    target: SpellTargetType::Projectile
                 }
             },
             Spells::LightningStrike => {

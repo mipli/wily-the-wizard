@@ -179,7 +179,7 @@ fn add_monsters<T: Rng>(level: u32, room: &Rect, creatures: &Vec<CreatureData>, 
 
     match choice {
         RoomDifficulty::Easy => {
-            add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
+            add_creature(&creatures[2], room, width, height, scheduler, spawning_pool, rng);
             if level >= 2 {
                 add_creature(&creatures[0], room, width, height, scheduler, spawning_pool, rng);
             }
@@ -288,6 +288,10 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
             item: "shield"
         },
         Weighted {
+            weight: 500,
+            item: "magic_missile"
+        },
+        Weighted {
             weight: 3,
             item: "frost"
         }
@@ -296,6 +300,7 @@ fn add_item<T: Rng>(pos: Point, spawning_pool: &mut components::SpawningPool, rn
     let choice = WeightedChoice::new(chances);
 
     match choice.ind_sample(rng) {
+        "magic_missile" => add_magic_missile_scroll(pos, spawning_pool),
         "frost" => add_frost_scroll(pos, spawning_pool),
         "healing" => add_healing_potion(pos, spawning_pool),
         "scroll" => add_lightning_scroll(pos, spawning_pool),
@@ -320,6 +325,21 @@ fn add_sword(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entity
             strength: 5,
             defense: 0
         })
+    });
+    item
+}
+
+fn add_magic_missile_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
+    let item = spawning_pool.spawn_entity();
+    spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 250, g: 50, b: 150}});
+    spawning_pool.set(item, components::Physics{coord: pos});
+    spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
+    spawning_pool.set(item, components::Information{name: "scroll of magic missile".to_string()});
+    spawning_pool.set(item, components::Item{
+        on_use: Some(components::OnUseCallback::Spell(spells::Spells::MagicMissile)),
+        equip: None,
+        kind: components::ItemKind::Scroll,
+        statistics_bonus: None
     });
     item
 }

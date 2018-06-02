@@ -169,6 +169,24 @@ fn run_game(tcod: &mut Tcod) {
                     )));
                 }
             },
+            TickResult::Wait(WaitResult::RequireProjectile{action}) => {
+                let range = match action.command {
+                    Command::CastSpell{ref spell} => spell.range,
+                    _ => 10
+                };
+                if let Some(physics) = game.state.spawning_pool.get::<components::Physics>(game.state.player) {
+                    manager.add(Box::new(screens::SpellProjectileTargetScreen::new(
+                        physics.coord,
+                        range,
+                        &game.state,
+                        Box::new(move |ent, _state, actions| {
+                            let mut act = action.clone();
+                            act.target = Some(ActionTarget::Entity(ent));
+                            actions.push(act);
+                        })
+                    )));
+                }
+            },
             TickResult::Wait(WaitResult::RequireSpot{action}) => {
                 let range = match action.command {
                     Command::CastSpell{ref spell} => spell.range,

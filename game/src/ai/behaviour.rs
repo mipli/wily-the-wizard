@@ -1,3 +1,4 @@
+use tcod::line::{Line};
 use spawning_pool::{EntityId};
 use rand::{thread_rng, Rng};
 use map::*;
@@ -22,6 +23,22 @@ pub fn melee_attack_entity(actor: EntityId, target: EntityId, state: &mut GameSt
         None
     }
 }
+
+pub fn walk_to_away_from(actor: EntityId, pos: Point, state: &mut GameState) -> Option<Vec<Action>> {
+    let actor_position = get_entity_position(actor, state)?;
+    let mut dir: Point = actor_position.direction_to(pos).into();
+    dir = dir * -1;
+    if can_walk(actor_position + dir, &state.spatial_table, &state.map) {
+        Some(vec![Action {
+            actor: Some(actor),
+            target: None,
+            command: Command::WalkDirection{dir}
+        }])
+    } else {
+        None
+    }
+}
+
 
 pub fn walk_to_position(actor: EntityId, end: Point, state: &mut GameState) -> Option<Vec<Action>> {
     let start= get_entity_position(actor, state)?;
@@ -56,13 +73,32 @@ pub fn cast_spell_at(actor: EntityId, target: EntityId, state: &mut GameState) -
     }
     let spell = select_spell(actor, &state.spawning_pool)?;
     if actor_position.distance(target_position) < spell.range as f32 {
-        return Some(vec![Action {
-            actor: Some(actor),
-            target: Some(ActionTarget::Entity(target)),
-            command: Command::CastSpell{
-                spell
+        match spell.target {
+            spells::SpellTargetType::Projectile => {
+                let projectile_target = get_projectile_target(actor, target, state);
+                if projectile_target == target {
+                    return Some(vec![Action {
+                        actor: Some(actor),
+                        target: Some(ActionTarget::Entity(projectile_target)),
+                        command: Command::CastSpell{
+                            spell
+                        }
+                    }]);
+                } else {
+                    println!("Projectile hitting wrong target");
+                    return None;
+                }
+            },
+            _ => {
+                return Some(vec![Action {
+                    actor: Some(actor),
+                    target: Some(ActionTarget::Entity(target)),
+                    command: Command::CastSpell{
+                        spell
+                    }
+                }]);
             }
-        }]);
+        };
     } else {
         None
     }
@@ -124,19 +160,25 @@ fn step_towards_position(actor: EntityId, start: Point, end: Point, state: &mut 
 
 pub fn get_player_position(actor: EntityId, state: &mut GameState) -> Option<Point> {
     use components::*;
+    println!("getting player position");
     match get_entity_position(state.player, state) {
         Some(pos) => {
+            println!("Some");
             if let Some(map_memory) = state.spawning_pool.get::<MapMemory>(actor) {
                 if map_memory.is_visible(pos.x, pos.y) {
+                    println!("Some 1");
                     Some(pos)
                 } else {
                     if let Some(mem) = state.spawning_pool.get::<AiMemory>(actor) {
+                        println!("Some 2");
                         mem.path_goal
                     } else {
+                        println!("None 1");
                         None
                     }
                 }
             } else {
+                println!("Some 3");
                 Some(pos)
             }
         }
@@ -144,7 +186,30 @@ pub fn get_player_position(actor: EntityId, state: &mut GameState) -> Option<Poi
             if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
                 mem.forget();
             }
+            println!("None 2");
             None
         }
     }
+}
+
+fn get_projectile_target(actor: EntityId, target: EntityId, state: &GameState) -> EntityId {
+    use components::*;
+    if let Some(start) = get_entity_position(actor, state) {
+        if let Some(end) = get_entity_position(target, state) {
+            let line = Line::new((start.x, start.y), (end.x, end.y));
+            for (x, y) in line {
+                match state.spatial_table.get((x, y)) {
+                    Some(cell) if cell.solid && !cell.entities.is_empty() => {
+                        for entity in &cell.entities {
+                            if state.spawning_pool.get::<Stats>(*entity).is_some() {
+                                return *entity;
+                            }
+                        }
+                    },
+                    _ => {}
+                }
+            }
+        }
+    }
+    return target;
 }

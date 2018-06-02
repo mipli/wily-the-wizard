@@ -93,7 +93,8 @@ pub enum WaitResult {
     Wait,
     RequireTarget{action: Action},
     RequireSpot{action: Action},
-    RequireRay{action: Action}
+    RequireRay{action: Action},
+    RequireProjectile{action: Action}
 }
 
 pub enum TickResult {
@@ -149,6 +150,7 @@ impl Game {
                         spells::SpellTargetType::Spot => TickResult::Wait(WaitResult::RequireSpot{action: action.clone()}),
                         spells::SpellTargetType::Ray => TickResult::Wait(WaitResult::RequireRay{action: action.clone()}),
                         spells::SpellTargetType::Closest => TickResult::Wait(WaitResult::RequireTarget{action: action.clone()}),
+                        spells::SpellTargetType::Projectile => TickResult::Wait(WaitResult::RequireProjectile{action: action.clone()}),
                         spells::SpellTargetType::Entity => TickResult::Wait(WaitResult::RequireTarget{action: action.clone()})
                     }
                 } else {
@@ -324,6 +326,7 @@ fn check_require_information(action: &Action) -> bool {
                 spells::SpellTargetType::Ray => action.target.is_none(),
                 spells::SpellTargetType::Entity => action.target.is_none(),
                 spells::SpellTargetType::Spot => action.target.is_none(),
+                spells::SpellTargetType::Projectile => action.target.is_none(),
                 spells::SpellTargetType::Closest => false
             }
         },
@@ -392,7 +395,7 @@ fn create_player(spawning_pool: &mut components::SpawningPool, width: i32, heigh
     spawning_pool.set(player, components::Equipment{items: Default::default()});
     spawning_pool.set(player, components::Stats::new(
         components::Faction::Player,
-        10,
+        100,
         5,
         3
     ));

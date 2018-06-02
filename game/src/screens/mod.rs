@@ -26,6 +26,7 @@ mod level_up;
 mod spell_entity_target;
 mod spell_position_target;
 mod spell_ray_target;
+mod spell_projectile_target;
 
 pub use self::inventory_screen::{InventoryScreen, InventoryAction};
 pub use self::game_over::GameOverScreen;
@@ -34,6 +35,7 @@ pub use self::target::TargetScreen;
 pub use self::spell_entity_target::SpellEntityTargetScreen;
 pub use self::spell_position_target::SpellPositionTargetScreen;
 pub use self::spell_ray_target::SpellRayTargetScreen;
+pub use self::spell_projectile_target::SpellProjectileTargetScreen;
 pub use self::level_up::LevelUpScreen;
 
 pub struct Input {

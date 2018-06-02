@@ -80,6 +80,18 @@ fn cast(spell: &Spell, caster: Option<EntityId>, target: Option<ActionTarget>, s
                 None
             }
         },
+        SpellTargetType::Projectile => {
+            if let Some(ActionTarget::Entity(target)) = target {
+                let target = get_projectile_target(caster.unwrap(), target, state);
+                if target.is_some() {
+                    Some(SpellTarget::Entity(target.unwrap()))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        },
         SpellTargetType::Entity => {
             if let Some(ActionTarget::Entity(target)) = target {
                 Some(SpellTarget::Entity(target))
@@ -215,6 +227,26 @@ fn get_closest_target(caster: EntityId, state: &GameState) -> Option<EntityId> {
                 a.1.cmp(&b.1)
             });
            return Some(entities[1].0);
+        }
+    }
+    None
+}
+
+fn get_projectile_target(caster: EntityId, target: EntityId, state: &GameState) -> Option<EntityId> {
+    use components::*;
+    let start = get_entity_position(caster, state)?;
+    let end = get_entity_position(target, state)?;
+    let line = Line::new((start.x, start.y), (end.x, end.y));
+    for (x, y) in line {
+        match state.spatial_table.get((x, y)) {
+            Some(cell) if cell.solid && !cell.entities.is_empty() => {
+                for entity in &cell.entities {
+                    if state.spawning_pool.get::<Stats>(*entity).is_some() {
+                        return Some(*entity);
+                    }
+                }
+            },
+            _ => {}
         }
     }
     None
