@@ -39,7 +39,6 @@ pub fn walk_to_away_from(actor: EntityId, pos: Point, state: &mut GameState) -> 
     }
 }
 
-
 pub fn walk_to_position(actor: EntityId, end: Point, state: &mut GameState) -> Option<Vec<Action>> {
     let start= get_entity_position(actor, state)?;
     let next_pos = step_towards_position(actor, start, end, state)?;
@@ -54,7 +53,7 @@ pub fn walk_to_position(actor: EntityId, end: Point, state: &mut GameState) -> O
 pub fn wait_and_forget(actor: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
     use components::*;
     if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
-        mem.forget();
+        mem.path_memory.forget();
     }
     Some(vec![Action {
         actor: Some(actor),
@@ -85,7 +84,6 @@ pub fn cast_spell_at(actor: EntityId, target: EntityId, state: &mut GameState) -
                         }
                     }]);
                 } else {
-                    println!("Projectile hitting wrong target");
                     return None;
                 }
             },
@@ -119,7 +117,7 @@ fn step_towards_position(actor: EntityId, start: Point, end: Point, state: &mut 
         return None;
     }
     if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
-        match mem.remember_path_to(start, end) {
+        match mem.path_memory.remember_path_to(start, end) {
             Some(next) => {
                 if can_walk(next, &state.spatial_table, &state.map) {
                     Some(next)
@@ -127,12 +125,12 @@ fn step_towards_position(actor: EntityId, start: Point, end: Point, state: &mut 
                     match path::path(start, end, &state.spatial_table, &state.map) {
                         Some(mut path) => {
                             let next = path.pop();
-                            mem.path = Some(path);
-                            mem.path_goal = Some(end);
+                            mem.path_memory.path = Some(path);
+                            mem.path_memory.goal = Some(end);
                             next
                         },
                         None => {
-                            mem.forget();
+                            mem.path_memory.forget();
                             None
                         }
                     }
@@ -142,12 +140,12 @@ fn step_towards_position(actor: EntityId, start: Point, end: Point, state: &mut 
                 match path::path(start, end, &state.spatial_table, &state.map) {
                     Some(mut path) => {
                         let next = path.pop();
-                        mem.path = Some(path);
-                        mem.path_goal = Some(end);
+                        mem.path_memory.path = Some(path);
+                        mem.path_memory.goal = Some(end);
                         next
                     },
                     None => {
-                        mem.forget();
+                        mem.path_memory.forget();
                         None
                     }
                 }
@@ -155,40 +153,6 @@ fn step_towards_position(actor: EntityId, start: Point, end: Point, state: &mut 
         }
     } else {
         None
-    }
-}
-
-pub fn get_player_position(actor: EntityId, state: &mut GameState) -> Option<Point> {
-    use components::*;
-    println!("getting player position");
-    match get_entity_position(state.player, state) {
-        Some(pos) => {
-            println!("Some");
-            if let Some(map_memory) = state.spawning_pool.get::<MapMemory>(actor) {
-                if map_memory.is_visible(pos.x, pos.y) {
-                    println!("Some 1");
-                    Some(pos)
-                } else {
-                    if let Some(mem) = state.spawning_pool.get::<AiMemory>(actor) {
-                        println!("Some 2");
-                        mem.path_goal
-                    } else {
-                        println!("None 1");
-                        None
-                    }
-                }
-            } else {
-                println!("Some 3");
-                Some(pos)
-            }
-        }
-        None => {
-            if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
-                mem.forget();
-            }
-            println!("None 2");
-            None
-        }
     }
 }
 
@@ -212,4 +176,27 @@ fn get_projectile_target(actor: EntityId, target: EntityId, state: &GameState) -
         }
     }
     return target;
+}
+
+pub fn can_see_entity(actor: EntityId, target: EntityId, state: &GameState) -> bool {
+    use components::*;
+    match get_entity_position(target, state) {
+        Some(pos) => {
+            if let Some(map_memory) = state.spawning_pool.get::<MapMemory>(actor) {
+                map_memory.is_visible(pos.x, pos.y)
+            } else {
+                false
+            }
+        },
+        None => false
+    }
+}
+
+pub fn recall_player_position(actor: EntityId, state: &GameState) -> Option<Point> {
+    use components::*;
+    if let Some(mem) = state.spawning_pool.get::<AiMemory>(actor) {
+        mem.player_position
+    } else {
+        None
+    }
 }
