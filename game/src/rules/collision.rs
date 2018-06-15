@@ -43,6 +43,9 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                                 });
                                 continue;
                             }
+                            if game_state.spawning_pool.get::<components::Stats>(*entity).is_none() {
+                                continue;
+                            }
                             let actor_faction = match game_state.spawning_pool.get::<components::Information>(action.actor.unwrap()) {
                                 Some(info) => Some(info.faction),
                                 None => None
