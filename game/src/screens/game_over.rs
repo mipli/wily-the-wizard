@@ -45,7 +45,7 @@ impl Screen for GameOverScreen {
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
         match input.key {
-            Key { code: KeyCode::Escape, .. } | Key { printable: 'q', .. } => {
+            Key { code: KeyCode::Escape, .. } | Key { code: KeyCode::Text, printable: 'q', .. } => {
                 self.exit = true;
             },
             _ => {}

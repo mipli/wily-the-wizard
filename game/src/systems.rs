@@ -13,7 +13,24 @@ use actions::*;
 use game::*;
 use components;
 
-pub fn confusion(entity: EntityId, state: &mut GameState) -> Option<Action> {
+pub fn run(entity: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
+    let mut actions = vec![];
+    if let Some(action) = stun(entity, state) {
+        actions.push(action);
+    }
+    if actions.is_empty() {
+        if let Some(action) = confusion(entity, state) {
+            actions.push(action);
+        }
+    }
+    if actions.is_empty() {
+        None
+    } else {
+        Some(actions)
+    }
+}
+
+fn confusion(entity: EntityId, state: &mut GameState) -> Option<Action> {
     use components::*;
     let _ = state.spawning_pool.get::<Stats>(entity)?.effects.get(&Effect::Confuse)?;
     let entity_position = get_entity_position(entity, state)?;
@@ -32,22 +49,18 @@ pub fn confusion(entity: EntityId, state: &mut GameState) -> Option<Action> {
     None
 }
 
-/*
-fn reduce_timer(entity: EntityId, state: &mut GameState) {
+fn stun(entity: EntityId, state: &mut GameState) -> Option<Action> {
     use components::*;
-    let name = utils::get_entity_name(entity, &state.spawning_pool);
-    if let Some(stats) = state.spawning_pool.get_mut::<Stats>(entity) {
-        let remain = match stats.effects.get(&Effect::Confuse) {
-            Some(time) => time >= &state.scheduler.time,
-            None => false
-        };
-        if !remain {
-            stats.effects.remove(&Effect::Confuse);
-            state.messages.log(MessageLevel::Info, format!("The {} is longer confused", name));
-        }
+    let _ = state.spawning_pool.get::<Stats>(entity)?.effects.get(&Effect::Stun)?;
+    if entity == state.player {
+        state.messages.log(MessageLevel::Info, "The player is stunned");
     }
+    return Some(Action {
+        actor: Some(entity),
+        target: None,
+        command: Command::Wait
+    });
 }
-*/
 
 pub struct DurationSystem {
     last_time: i32

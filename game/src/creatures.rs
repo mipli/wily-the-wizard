@@ -73,10 +73,10 @@ pub fn create_creature(data: &CreatureData, pos: Point, width: i32, height: i32,
         ai: data.ai
     });
     spawning_pool.set(creature, components::Information{
+        faction: components::Faction::Enemy,
         name: data.name.to_string()
     });
     spawning_pool.set(creature, components::Stats::new(
-        components::Faction::Enemy,
         data.health,
         data.strength,
         data.defense

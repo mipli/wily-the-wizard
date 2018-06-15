@@ -6,6 +6,7 @@ mod spells;
 mod definitions;
 mod collision;
 mod attack;
+mod trigger;
 
 pub use self::definitions::*;
 
@@ -19,6 +20,7 @@ pub fn apply_rules(action: &mut Action, game_state: &GameState, rejected_actions
         spells::lightning_strike,
         attack::attack,
         attack::take_damage,
+        trigger::trigger
     ];
     if action.command == Command::Abort {
         return ActionStatus::Reject;
@@ -32,3 +34,5 @@ pub fn apply_rules(action: &mut Action, game_state: &GameState, rejected_actions
     }
     action_status
 }
+
+

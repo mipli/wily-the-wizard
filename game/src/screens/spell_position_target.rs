@@ -81,34 +81,34 @@ impl Screen for SpellPositionTargetScreen {
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
         match input.key {
-            Key { code: KeyCode::Escape, .. } | Key { printable: 'q', .. } => {
+            Key { code: KeyCode::Escape, .. } | Key { code: KeyCode::Text, printable: 'q', .. } => {
                 self.exit = true;
             },
             Key { code: KeyCode::Enter, .. } => {
                 self.selected = true;
             },
-            Key { code: KeyCode::Up, .. } | Key { printable: 'k', .. } => {
+            Key { code: KeyCode::Up, .. } | Key { code: KeyCode::Text, printable: 'k', .. } => {
                 self.position += (0, -1);
             },
-            Key { printable: 'u', .. } => {
+            Key { code: KeyCode::Text, printable: 'u', .. } => {
                 self.position += (1, -1);
             },
-            Key { code: KeyCode::Right, .. } | Key { printable: 'l', .. } => {
+            Key { code: KeyCode::Right, .. } | Key { code: KeyCode::Text, printable: 'l', .. } => {
                 self.position += (1, 0);
             },
-            Key { printable: 'n', .. } => {
+            Key { code: KeyCode::Text, printable: 'n', .. } => {
                 self.position += (1, 1);
             },
-            Key { code: KeyCode::Down, .. } | Key { printable: 'j', .. } => {
+            Key { code: KeyCode::Down, .. } | Key { code: KeyCode::Text, printable: 'j', .. } => {
                 self.position += (0, 1);
             },
-            Key { printable: 'b', .. } => {
+            Key { code: KeyCode::Text, printable: 'b', .. } => {
                 self.position += (-1, 1);
             },
-            Key { code: KeyCode::Left, .. } | Key { printable: 'h', .. } => {
+            Key { code: KeyCode::Left, .. } | Key { code: KeyCode::Text, printable: 'h', .. } => {
                 self.position += (-1, 0);
             },
-            Key { printable: 'y', .. } => {
+            Key { code: KeyCode::Text, printable: 'y', .. } => {
                 self.position += (-1, -1);
             },
             _ => {}

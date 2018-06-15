@@ -163,57 +163,62 @@ impl Screen for GameScreen {
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
         self.input_command = match input.key {
             Key { code: KeyCode::Escape, .. } => Some(InputCommand::Quit),  // exit game
-            Key { code: KeyCode::Up, .. } | Key { printable: 'k', .. } => {
+            Key { code: KeyCode::Up, .. } | Key { code: KeyCode::Text, printable: 'k', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (0, -1).into() }})
             },
-            Key { printable: 'u', .. } => {
+            Key { code: KeyCode::Text, printable: 'u', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (1, -1).into() }})
             },
-            Key { code: KeyCode::Right, .. } | Key { printable: 'l', .. } => {
+            Key { code: KeyCode::Right, .. } | Key { code: KeyCode::Text, printable: 'l', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (1, 0).into() }})
             },
-            Key { printable: 'n', .. } => {
+            Key { code: KeyCode::Text, printable: 'n', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (1, 1).into() }})
             },
-            Key { code: KeyCode::Down, .. } | Key { printable: 'j', .. } => {
+            Key { code: KeyCode::Down, .. } | Key { code: KeyCode::Text, printable: 'j', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (0, 1).into() }})
             },
-            Key { printable: 'b', .. } => {
+            Key { code: KeyCode::Text, printable: 'b', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (-1, 1).into() }})
             },
-            Key { code: KeyCode::Left, .. } | Key { printable: 'h', .. } => {
+            Key { code: KeyCode::Left, .. } | Key { code: KeyCode::Text, printable: 'h', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (-1, 0).into() }})
             },
-            Key { printable: 'y', .. } => {
+            Key { code: KeyCode::Text, printable: 'y', .. } => {
                 Some(InputCommand::GameCommand{command: Command::WalkDirection{ dir: (-1, -1).into() }})
             },
-            Key { printable: ' ', .. } => {
+            Key { code: KeyCode::Text, printable: ' ', .. } => {
                 Some(InputCommand::TileInteraction)
             },
-            Key { printable: 'i', .. } => {
+            Key { code: KeyCode::Text, printable: 'i', .. } => {
                 Some(InputCommand::ShowInventoryUse)
             },
-            Key { printable: 'd', .. } => {
+            Key { code: KeyCode::Text, printable: 'd', .. } => {
                 Some(InputCommand::ShowInventoryDrop)
             },
-            Key { printable: 'x', .. } => {
+            Key { code: KeyCode::Text, printable: 'x', .. } => {
                 Some(InputCommand::Look)
             },
-            Key { printable: ',', .. } => {
+            Key { code: KeyCode::Text, printable: ',', .. } => {
                 Some(InputCommand::PickUpItem)
             },
-            Key { printable: '.', .. } => {
+            Key { code: KeyCode::Text, printable: '.', .. } => {
                 Some(InputCommand::GameCommand{command: Command::Wait})
             },
-            Key { printable: '1', .. } => {
+            Key { code: KeyCode::Text, printable: '1', .. } => {
+                Some(InputCommand::GameCommand{command: Command::WriteRune{
+                    spell: spells::Spells::Stun
+                }})
+            },
+            Key { code: KeyCode::Text, printable: '2', .. } => {
                 Some(InputCommand::GameCommand{command: Command::CastSpell{
                     spell: spells::Spell::create(spells::Spells::Fog)
                 }})
             },
-            Key { printable: '0', .. } => {
+            Key { code: KeyCode::Text, printable: '0', .. } => {
                 Some(InputCommand::ToggleOmnipotence)
             },
-            Key { printable: '9', .. } => {
+            Key { code: KeyCode::Text, printable: '9', .. } => {
                 Some(InputCommand::SelfHeal)
             },
             _ => None

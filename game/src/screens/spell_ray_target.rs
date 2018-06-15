@@ -99,41 +99,41 @@ impl Screen for SpellRayTargetScreen {
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
         match input.key {
-            Key { code: KeyCode::Escape, .. } | Key { printable: 'q', .. } => {
+            Key { code: KeyCode::Escape, .. } | Key { code: KeyCode::Text, printable: 'q', .. } => {
                 self.exit = true;
             },
             Key { code: KeyCode::Enter, .. } => {
                 self.selected = true;
             },
-            Key { code: KeyCode::Up, .. } | Key { printable: 'k', .. } => {
+            Key { code: KeyCode::Up, .. } | Key { code: KeyCode::Text, printable: 'k', .. } => {
                 self.cursor += (0, -1);
                 self.ray.clear();
             },
-            Key { printable: 'u', .. } => {
+            Key { code: KeyCode::Text, printable: 'u', .. } => {
                 self.cursor += (1, -1);
                 self.ray.clear();
             },
-            Key { code: KeyCode::Right, .. } | Key { printable: 'l', .. } => {
+            Key { code: KeyCode::Right, .. } | Key { code: KeyCode::Text, printable: 'l', .. } => {
                 self.cursor += (1, 0);
                 self.ray.clear();
             },
-            Key { printable: 'n', .. } => {
+            Key { code: KeyCode::Text, printable: 'n', .. } => {
                 self.cursor += (1, 1);
                 self.ray.clear();
             },
-            Key { code: KeyCode::Down, .. } | Key { printable: 'j', .. } => {
+            Key { code: KeyCode::Down, .. } | Key { code: KeyCode::Text, printable: 'j', .. } => {
                 self.cursor += (0, 1);
                 self.ray.clear();
             },
-            Key { printable: 'b', .. } => {
+            Key { code: KeyCode::Text, printable: 'b', .. } => {
                 self.cursor += (-1, 1);
                 self.ray.clear();
             },
-            Key { code: KeyCode::Left, .. } | Key { printable: 'h', .. } => {
+            Key { code: KeyCode::Left, .. } | Key { code: KeyCode::Text, printable: 'h', .. } => {
                 self.cursor += (-1, 0);
                 self.ray.clear();
             },
-            Key { printable: 'y', .. } => {
+            Key { code: KeyCode::Text, printable: 'y', .. } => {
                 self.cursor += (-1, -1);
                 self.ray.clear();
             },

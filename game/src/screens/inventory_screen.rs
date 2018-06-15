@@ -118,7 +118,7 @@ impl Screen for InventoryScreen {
         if let Key { code: KeyCode::Escape, .. } = input.key {
             self.exit = true;
         }
-        if input.key.printable.is_alphabetic() {
+        if input.key.code == KeyCode::Text && input.key.printable.is_alphabetic() {
             if let Some(item) = self.options.get(&input.key.printable.to_ascii_lowercase()) {
                 self.selected = Some(*item);
             }

@@ -150,7 +150,7 @@ impl ScreenManager {
         match input::check_for_event(input::MOUSE | input::KEY_PRESS) {
             Some((_, Event::Mouse(m))) => input.mouse = m,
             Some((_, Event::Key(k))) => input.key = k,
-            _ => input.key = Default::default()
+            _ => {}
         }
         for screen in &mut self.screens {
             let res = screen.borrow_mut().handle_input(&input, state);

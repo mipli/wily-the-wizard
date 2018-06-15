@@ -6,7 +6,8 @@ pub enum Spells {
     RayOfFrost,
     Experience,
     Heal,
-    Fog
+    Fog,
+    Stun
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -18,25 +19,44 @@ pub enum SpellTargetType {
     Ray
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum SpellTargeting {
+    Select,
+    Closest,
+    Caster
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Spell {
     pub name: String,
     pub kind: Spells,
     pub power: i32,
+    pub range: i32,
     pub target: SpellTargetType,
-    pub range: i32
+    pub targeting: SpellTargeting
 }
 
 impl Spell {
     pub fn create(spl: Spells) -> Spell {
         match spl {
+            Spells::Stun => {
+                Spell {
+                    name: "Stun".to_string(),
+                    kind: Spells::Stun,
+                    power: 1,
+                    range: 5,
+                    target: SpellTargetType::Entity,
+                    targeting: SpellTargeting::Select
+                }
+            },
             Spells::Experience => {
                 Spell {
                     name: "Experience".to_string(),
                     kind: Spells::Experience,
                     power: 1,
                     range: 10,
-                    target: SpellTargetType::Entity
+                    target: SpellTargetType::Entity,
+                    targeting: SpellTargeting::Caster
                 }
             },
             Spells::RayOfFrost => {
@@ -45,7 +65,8 @@ impl Spell {
                     kind: Spells::RayOfFrost,
                     power: 1,
                     range: 10,
-                    target: SpellTargetType::Ray
+                    target: SpellTargetType::Ray,
+                    targeting: SpellTargeting::Select
                 }
             },
             Spells::Fog => {
@@ -54,7 +75,8 @@ impl Spell {
                     kind: Spells::Fog,
                     power: 0,
                     range: 5,
-                    target: SpellTargetType::Spot
+                    target: SpellTargetType::Spot,
+                    targeting: SpellTargeting::Select
                 }
             },
             Spells::MagicMissile => {
@@ -63,7 +85,8 @@ impl Spell {
                     kind: Spells::MagicMissile,
                     power: 5,
                     range: 10,
-                    target: SpellTargetType::Projectile
+                    target: SpellTargetType::Projectile,
+                    targeting: SpellTargeting::Select
                 }
             },
             Spells::LightningStrike => {
@@ -72,7 +95,8 @@ impl Spell {
                     kind: Spells::LightningStrike,
                     power: 10,
                     range: 4,
-                    target: SpellTargetType::Entity
+                    target: SpellTargetType::Entity,
+                    targeting: SpellTargeting::Select
                 }
             },
             Spells::Confusion => {
@@ -81,7 +105,8 @@ impl Spell {
                     kind: Spells::Confusion,
                     power: 0,
                     range: 5,
-                    target: SpellTargetType::Closest
+                    target: SpellTargetType::Closest,
+                    targeting: SpellTargeting::Closest
                 }
             },
             Spells::Heal => {
@@ -90,7 +115,8 @@ impl Spell {
                     kind: Spells::Heal,
                     power: 5,
                     range: 3,
-                    target: SpellTargetType::Entity
+                    target: SpellTargetType::Entity,
+                    targeting: SpellTargeting::Caster
                 }
             }
         }

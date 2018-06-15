@@ -90,7 +90,7 @@ impl Screen for TargetScreen {
 
     fn handle_input(&mut self, input: &Input, state: &mut GameState) -> ScreenResult {
         match input.key {
-            Key { code: KeyCode::Escape, .. } | Key { printable: 'q', .. } => {
+            Key { code: KeyCode::Escape, .. } | Key { code: KeyCode::Text, printable: 'q', .. } => {
                 self.exit = true;
             },
             Key { code: KeyCode::Tab, .. } => {

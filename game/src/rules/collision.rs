@@ -41,16 +41,17 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                                     target: None,
                                     command: Command::OpenDoor{entity: *entity}
                                 });
+                                continue;
                             }
-                            let actor_faction = match game_state.spawning_pool.get::<components::Stats>(action.actor.unwrap()) {
-                                Some(stats) => Some(stats.faction),
+                            let actor_faction = match game_state.spawning_pool.get::<components::Information>(action.actor.unwrap()) {
+                                Some(info) => Some(info.faction),
                                 None => None
                             };
                             if actor_faction.is_none() {
                                 continue;
                             }
-                            let entity_faction = match game_state.spawning_pool.get::<components::Stats>(*entity) {
-                                Some(stats) => Some(stats.faction),
+                            let entity_faction = match game_state.spawning_pool.get::<components::Information>(*entity) {
+                                Some(info) => Some(info.faction),
                                 None => None
                             };
                             if entity_faction.is_none() {

@@ -1,5 +1,6 @@
 use tcod::console::*;
 use tcod::colors;
+use tcod::input::KeyCode;
 use screens::*;
 use screens::utils::{get_menu};
 
@@ -76,10 +77,10 @@ impl Screen for LevelUpScreen {
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
         match input.key {
-            Key { printable: 's', .. } => {
+            Key { code: KeyCode::Text, printable: 's', .. } => {
                 self.choice = Some(LevelUpChoice::Strength);
             },
-            Key { printable: 'd', .. } => {
+            Key { code: KeyCode::Text, printable: 'd', .. } => {
                 self.choice = Some(LevelUpChoice::Defense);
             },
             _ => {}

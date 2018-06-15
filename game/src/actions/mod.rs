@@ -14,6 +14,7 @@ use utils;
 use messages::*;
 pub use self::definitions::*;
 use self::items::*;
+use spells;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ActionResult {
@@ -36,11 +37,18 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
             if let Some(mut physics) = game_state.spawning_pool.get_mut::<components::Physics>(action.actor.unwrap()) {
                 physics.coord += dir;
             }
-            ActionResult::Performed{time: 100}
+            ActionResult::Performed{time: 50}
         },
         Command::SpawnFog{..} => {
             perform_spawn_fog(action, game_state);
             ActionResult::Performed{time: 0}
+        },
+        Command::WriteRune{..} => {
+            if perform_write_rune(action, game_state) {
+                ActionResult::Performed{time: 300}
+            } else {
+                ActionResult::Failed
+            }
         },
         Command::TakeDamage{..} => {
             perform_take_damage(action, game_state);
@@ -89,6 +97,10 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
             perform_slow(action, game_state);
             ActionResult::Performed{time: 0}
         },
+        Command::Stun => {
+            perform_stun(action, game_state);
+            ActionResult::Performed{time: 0}
+        },
         Command::CastSpell{ref spell} => {
             let actor = utils::get_actor_name(action, &game_state.spawning_pool);
             let msg = match action.target {
@@ -99,7 +111,7 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
                 None => format!("The {} is casting {}", actor, spell.name)
             };
             game_state.messages.log(MessageLevel::Spell, msg);
-            ActionResult::Performed{time: 100}
+            ActionResult::Performed{time: 200}
         },
         Command::DestroyItem{..} => {
             perform_destroy_item(action, game_state);
@@ -170,7 +182,7 @@ fn create_fog_at(pos: Point, spawning_pool: &mut SpawningPool) {
     let fog = spawning_pool.spawn_entity();
     spawning_pool.set(fog, components::Visual{
         always_display: false,
-        glyph: '#',
+        glyph: '~',
         color: colors::LIGHTEST_SKY
     });
     spawning_pool.set(fog, components::Physics{
@@ -186,6 +198,7 @@ fn create_fog_at(pos: Point, spawning_pool: &mut SpawningPool) {
         solid: false
     });
     spawning_pool.set(fog, components::Information{
+        faction: components::Faction::Neutral,
         name: "Fog".to_string()
     });
 }
@@ -195,6 +208,16 @@ fn perform_slow(action: &Action, state: &mut GameState) {
     if let Some(ActionTarget::Entity(target)) = action.target {
         if let Some(stats) = state.spawning_pool.get_mut::<Stats>(target) {
             stats.effects.insert(Effect::Slow, state.scheduler.time + 500);
+        }
+    }
+}
+
+fn perform_stun(action: &Action, state: &mut GameState) {
+    use components::*;
+
+    if let Some(ActionTarget::Entity(target)) = action.target {
+        if let Some(stats) = state.spawning_pool.get_mut::<Stats>(target) {
+            stats.effects.insert(Effect::Stun, state.scheduler.time + 500);
         }
     }
 }
@@ -378,9 +401,64 @@ fn perform_open_door(action: &Action, game_state: &mut GameState) {
     };
 
     game_state.spawning_pool.set(id, components::Visual{always_display: true, glyph: '-', color: colors::WHITE});
-    game_state.spawning_pool.set(id, components::Information{name: "open door".to_string()});
+    game_state.spawning_pool.set(id, components::Information{faction: components::Faction::Neutral, name: "open door".to_string()});
     game_state.spawning_pool.set(id, components::Door{opened: true});
     let flags = game_state.spawning_pool.get_mut::<components::Flags>(id).unwrap();
     flags.solid = false;
     flags.block_sight = false;
+}
+
+fn perform_write_rune(action: &Action, state: &mut GameState) -> bool {
+    if let Command::WriteRune{spell} = action.command {
+        let faction = match state.spawning_pool.get::<components::Information>(action.actor.unwrap()) {
+            Some(info) => info.faction,
+            None => components::Faction::Neutral
+        };
+        if let Some(actor) = action.actor {
+            if let Some(pos) = utils::get_position(actor, &state.spawning_pool) {
+                let mut has_rune = false;
+                if let Some(cell) = state.spatial_table.get(pos) {
+                    for entity in &cell.entities {
+                        has_rune = has_rune || state.spawning_pool.get::<components::Trigger>(*entity).is_some();
+                    }
+                }
+                if !has_rune {
+                    write_rune_at(spell, pos, faction, &mut state.spawning_pool);
+
+                    let actor = utils::get_actor_name(action, &state.spawning_pool);
+                    let cspell = spells::Spell::create(spell);
+                    let msg = format!("The {} carves a {} rune on the floor", actor, cspell.name);
+                    state.messages.log(MessageLevel::Spell, msg);
+                    return true;
+                } else {
+                    state.messages.log(MessageLevel::Info, "There is already a rune there");
+                }
+            }
+        }
+    }
+    false
+}
+
+fn write_rune_at(spell: spells::Spells, pos: Point, faction: components::Faction, spawning_pool: &mut SpawningPool) {
+    let rune = spawning_pool.spawn_entity();
+    spawning_pool.set(rune, components::Visual{
+        always_display: false,
+        glyph: '#',
+        color: colors::LIGHTEST_BLUE
+    });
+    spawning_pool.set(rune, components::Physics{
+        coord: pos,
+    });
+    spawning_pool.set(rune, components::Flags{
+        block_sight: false, 
+        solid: false
+    });
+    spawning_pool.set(rune, components::Information{
+        faction: faction,
+        name: "Stun Rune".to_string()
+    });
+    spawning_pool.set(rune, components::Trigger{
+        kind: components::TriggerKind::Step,
+        on_trigger: Some(components::OnTriggerCallback::Spell(spell))
+    });
 }

@@ -110,16 +110,16 @@ impl Screen for MainMenuScreen {
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
         match input.key {
-            Key { code: KeyCode::Escape, .. } | Key { printable: 'q', .. } => {
+            Key { code: KeyCode::Escape, .. } | Key { code: KeyCode::Text, printable: 'q', .. } => {
                 self.exit = true;
             },
-            Key { printable: 'n', .. } => {
+            Key { code: KeyCode::Text, printable: 'n', .. } => {
                 self.create_game = true;
             },
-            Key { printable: 'l', .. } => {
+            Key { code: KeyCode::Text, printable: 'l', .. } => {
                 self.load = true;
             },
-            Key { printable: 'c', .. } => {
+            Key { code: KeyCode::Text, printable: 'c', .. } => {
                 self.cont = self.running;
             },
             _ => {}

@@ -91,15 +91,10 @@ pub enum AI {
     SpellCaster
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Faction {
-    Player,
-    Enemy
-}
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum Effect {
     Slow,
+    Stun,
     Confuse
 }
 
@@ -107,6 +102,7 @@ impl fmt::Display for Effect {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Effect::Slow => write!(f, "slow"),
+            Effect::Stun => write!(f, "stun"),
             Effect::Confuse => write!(f, "confuse")
         }
     }
@@ -114,7 +110,6 @@ impl fmt::Display for Effect {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
-    pub faction: Faction,
     pub max_health: i32,
     pub health: i32,
     pub strength: i32,
@@ -124,9 +119,8 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn new(faction: Faction, max_health: i32, strength: i32, defense: i32) -> Stats {
+    pub fn new(max_health: i32, strength: i32, defense: i32) -> Stats {
         Stats {
-            faction,
             max_health,
             health: max_health,
             strength,
@@ -147,8 +141,16 @@ pub struct Door {
     pub opened: bool
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Faction {
+    Player,
+    Neutral,
+    Enemy
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Information {
+    pub faction: Faction,
     pub name: String
 }
 
@@ -227,6 +229,22 @@ pub struct Item {
     pub kind: ItemKind
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum TriggerKind {
+    Step
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OnTriggerCallback {
+    Spell(spells::Spells)
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Trigger {
+    pub on_trigger: Option<OnTriggerCallback>,
+    pub kind: TriggerKind
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Inventory {
     pub items: Vec<EntityId>
@@ -265,6 +283,7 @@ create_spawning_pool!(
     (MapMemory, map_memory, HashMapStorage),
     (Flags, flags, HashMapStorage),
     (Item, item, HashMapStorage),
+    (Trigger, trigger, HashMapStorage),
     (Inventory, inventory, HashMapStorage),
     (Equipment, equipment, HashMapStorage),
     (SpellBook, spell_book, HashMapStorage),

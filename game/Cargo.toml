@@ -9,7 +9,7 @@ map_generator = { path = "../map_generator" }
 geo = { path = "../geo" }
 time = "0.1.*"
 simple-stopwatch = "0.1.4"
-tcod = { version = "*", features = ["serialization"] }
+tcod = { git = "https://github.com/Gustorn/tcod-rs.git", branch = "tcod-16-upstream-rebase", features = ["serialization"]}
 rand = "*"
 serde = "1.0.27"
 serde_derive = "1.0.27"

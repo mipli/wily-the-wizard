@@ -240,7 +240,7 @@ fn add_door(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityI
     let door = spawning_pool.spawn_entity();
     spawning_pool.set(door, components::Visual{always_display: true, glyph: '+', color: colors::WHITE});
     spawning_pool.set(door, components::Physics{coord: (pos.x, pos.y).into()});
-    spawning_pool.set(door, components::Information{name: "closed door".to_string()});
+    spawning_pool.set(door, components::Information{faction: components::Faction::Neutral, name: "closed door".to_string()});
     spawning_pool.set(door, components::Flags{block_sight: true, solid: true});
     spawning_pool.set(door, components::Door{opened: false});
     door
@@ -250,7 +250,7 @@ fn add_down_stairs(pos: Point, spawning_pool: &mut components::SpawningPool) -> 
     let stairs = spawning_pool.spawn_entity();
     spawning_pool.set(stairs, components::Visual{always_display: true, glyph: '<', color: colors::WHITE});
     spawning_pool.set(stairs, components::Physics{coord: (pos.x, pos.y).into()});
-    spawning_pool.set(stairs, components::Information{name: "down stairs".to_string()});
+    spawning_pool.set(stairs, components::Information{faction: components::Faction::Neutral, name: "down stairs".to_string()});
     spawning_pool.set(stairs, components::Flags{block_sight: false, solid: false});
     stairs
 }
@@ -259,7 +259,7 @@ fn add_portal(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entit
     let portal = spawning_pool.spawn_entity();
     spawning_pool.set(portal, components::Visual{always_display: true, glyph: 'X', color: colors::PINK});
     spawning_pool.set(portal, components::Physics{coord: (pos.x, pos.y).into()});
-    spawning_pool.set(portal, components::Information{name: "portal to salvation".to_string()});
+    spawning_pool.set(portal, components::Information{faction: components::Faction::Neutral, name: "portal to salvation".to_string()});
     spawning_pool.set(portal, components::Flags{block_sight: false, solid: false});
     portal
 }
@@ -316,7 +316,7 @@ fn add_sword(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entity
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '/', color: colors::LIGHT_CYAN});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "sword".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "sword".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: None,
         equip: Some(components::EquipmentSlot::RightHand),
@@ -334,7 +334,7 @@ fn add_magic_missile_scroll(pos: Point, spawning_pool: &mut components::Spawning
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 250, g: 50, b: 150}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "scroll of magic missile".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "scroll of magic missile".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::MagicMissile)),
         equip: None,
@@ -349,7 +349,7 @@ fn add_frost_scroll(pos: Point, spawning_pool: &mut components::SpawningPool) ->
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 50, g: 150, b: 150}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "scroll of frost".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "scroll of frost".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::RayOfFrost)),
         equip: None,
@@ -364,7 +364,7 @@ fn add_confusion_scroll(pos: Point, spawning_pool: &mut components::SpawningPool
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 130, g: 50, b: 130}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "scroll of confusion".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "scroll of confusion".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::Confusion)),
         equip: None,
@@ -379,7 +379,7 @@ fn add_lightning_scroll(pos: Point, spawning_pool: &mut components::SpawningPool
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '?', color: tcod::colors::Color{r: 0, g: 100, b: 180}});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "scroll of lightning".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "scroll of lightning".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::LightningStrike)),
         equip: None,
@@ -394,7 +394,7 @@ fn add_shield(pos: Point, spawning_pool: &mut components::SpawningPool) -> Entit
     spawning_pool.set(item, components::Visual{always_display: false, glyph: ')', color: colors::LIGHTEST_CYAN});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "buckler".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "buckler".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: None,
         equip: Some(components::EquipmentSlot::LeftHand),
@@ -412,7 +412,7 @@ fn add_healing_potion(pos: Point, spawning_pool: &mut components::SpawningPool) 
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '!', color: colors::PINK});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "potion of healing".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "potion of healing".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::Heal)),
         equip: None,
@@ -428,7 +428,7 @@ fn add_experience_potion(pos: Point, spawning_pool: &mut components::SpawningPoo
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '!', color: colors::LIGHTEST_GREEN});
     spawning_pool.set(item, components::Physics{coord: pos});
     spawning_pool.set(item, components::Flags{block_sight: false, solid: false});
-    spawning_pool.set(item, components::Information{name: "potion of experience".to_string()});
+    spawning_pool.set(item, components::Information{faction: components::Faction::Neutral, name: "potion of experience".to_string()});
     spawning_pool.set(item, components::Item{
         on_use: Some(components::OnUseCallback::Spell(spells::Spells::Experience)),
         equip: None,

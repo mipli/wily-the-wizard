@@ -124,7 +124,7 @@ impl Game {
         }
         self.current_action = None;
         if !self.action_queue.is_empty() && self.action_queue[0].command != Command::Wait {
-            println!("Actions: {:?}", self.action_queue);
+            println!("Action Queue: {:?}", self.action_queue);
         }
 
         let mut performed_action = false;
@@ -132,6 +132,11 @@ impl Game {
         while !self.action_queue.is_empty() && !require_information {
             if self.current_action.is_none() {
                 self.current_action = Some(self.action_queue.remove(0));
+            }
+            if let Some(ref act) = self.current_action {
+                if act.command != Command::Wait {
+                    println!("Current Action: {:?}", self.current_action);
+                }
             }
             let res = self.action_tick(animations);
             require_information = res == ActionTickResult::RequireInformation;
@@ -188,11 +193,10 @@ impl Game {
     }
 
     fn get_actions(&mut self, actions: Vec<Action>) -> Option<Vec<Action>>{
-        let pre_action = systems::confusion(self.state.scheduler.get_current(), &mut self.state);
-        match pre_action {
-            Some(action) => {
-                Some(vec![action])
-            },
+        // let pre_action = systems::confusion(self.state.scheduler.get_current(), &mut self.state);
+        let pre_actions = systems::run(self.state.scheduler.get_current(), &mut self.state);
+        match pre_actions {
+            Some(_) => pre_actions,
             None => self.get_entity_actions(actions)
         }
     }
@@ -202,7 +206,7 @@ impl Game {
         let mut performed_action = false;
         let mut used_time = 0;
         if let Some(ref mut action) = self.current_action {
-            require_information = check_require_information(action);
+            require_information = check_require_information(action, &self.state);
             if !require_information {
                 let action_status = apply_rules(action, &self.state, &mut self.rejection_queue, &mut self.reaction_queue);
                 match action_status {
@@ -319,19 +323,46 @@ fn update_tick_time(time: i32, state: &GameState) -> i32 {
     }
 }
 
-fn check_require_information(action: &Action) -> bool {
+fn check_require_information(action: &mut Action, state: &GameState) -> bool {
+    use spells::*;
     match action.command {
         Command::CastSpell{ref spell} => {
+            if action.target.is_some() {
+                return false;
+            }
+            match spell.targeting {
+                SpellTargeting::Select => {},
+                SpellTargeting::Closest => {},
+                SpellTargeting::Caster => {
+                    action.target = get_action_caster_target(spell, action.actor.unwrap(), state);
+                }
+            }
             match spell.target {
-                spells::SpellTargetType::Ray => action.target.is_none(),
-                spells::SpellTargetType::Entity => action.target.is_none(),
-                spells::SpellTargetType::Spot => action.target.is_none(),
-                spells::SpellTargetType::Projectile => action.target.is_none(),
-                spells::SpellTargetType::Closest => false
+                SpellTargetType::Ray => action.target.is_none(),
+                SpellTargetType::Entity => action.target.is_none(),
+                SpellTargetType::Spot => action.target.is_none(),
+                SpellTargetType::Projectile => action.target.is_none(),
+                SpellTargetType::Closest => false
             }
         },
         _ => {
             false
+        }
+    }
+}
+
+fn get_action_caster_target(spell: &spells::Spell, actor: EntityId, state: &GameState) -> Option<ActionTarget> {
+    use spells::*;
+    match spell.target {
+        SpellTargetType::Spot => {
+            if let Some(pos) = get_entity_position(actor, state) {
+                Some(ActionTarget::Position(pos))
+            } else {
+                None
+            }
+        },
+        _ => {
+                Some(ActionTarget::Entity(actor))
         }
     }
 }
@@ -388,13 +419,12 @@ fn create_player(spawning_pool: &mut components::SpawningPool, width: i32, heigh
     spawning_pool.set(player, components::Visual{always_display: false, glyph: '@', color: colors::WHITE});
     spawning_pool.set(player, components::Physics{coord: (0,0).into()});
     spawning_pool.set(player, components::Controller{ai: components::AI::Player});
-    spawning_pool.set(player, components::Information{name: "player".to_string()});
+    spawning_pool.set(player, components::Information{faction: components::Faction::Player, name: "player".to_string()});
     spawning_pool.set(player, components::Flags{solid: true, block_sight: false});
     spawning_pool.set(player, components::Inventory{items: vec![]});
     spawning_pool.set(player, components::MapMemory::new(width, height));
     spawning_pool.set(player, components::Equipment{items: Default::default()});
     spawning_pool.set(player, components::Stats::new(
-        components::Faction::Player,
         100,
         5,
         3
