@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Spells {
     LightningStrike,
@@ -8,6 +10,21 @@ pub enum Spells {
     Heal,
     Fog,
     Stun
+}
+
+impl fmt::Display for Spells {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Spells::LightningStrike => write!(f, "Lightning Strike"),
+            Spells::Confusion => write!(f, "Confusion"),
+            Spells::MagicMissile => write!(f, "Magic Missile"),
+            Spells::RayOfFrost => write!(f, "Ray of Frost"),
+            Spells::Experience => write!(f, "Experience"),
+            Spells::Heal => write!(f, "Heal"),
+            Spells::Fog => write!(f, "Fog"),
+            Spells::Stun => write!(f, "Stun")
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]

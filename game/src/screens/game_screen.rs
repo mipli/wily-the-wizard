@@ -26,6 +26,7 @@ pub struct GameScreen {
     game_over: bool,
     omnipotent: bool,
     stats: Option<components::Stats>,
+    spell_book: Option<components::SpellBook>,
     map_memory: Option<components::MapMemory>,
     screens: Vec<ScreenPointer>,
     input_command: Option<InputCommand>
@@ -41,6 +42,7 @@ impl GameScreen {
             screens: vec![],
             stats: None,
             map_memory: None,
+            spell_book: None,
             input_command: None,
         }
     }
@@ -68,8 +70,10 @@ impl Screen for GameScreen {
     fn render(&mut self, delta: f64, state: &mut GameState, _fov: &tcod::map::Map, tcod: &mut render::Tcod) -> (ScreenResult, Option<ModularWindow>) {
         if let Some(ref stats) = self.stats {
             if let Some(ref memory) = self.map_memory {
-                let screen = render(tcod, &stats, &memory, state, self.omnipotent, delta);
-                return (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}));
+                if let Some(ref spell_book) = self.spell_book {
+                    let screen = render(tcod, &stats, &memory, &spell_book, state, self.omnipotent, delta);
+                    return (ScreenResult::Stop, Some(ModularWindow{screen, alpha: 1.0, pos: ModularWindowPosition::Position{point: (0, 0).into()}}));
+                }
             }
         }
         (ScreenResult::Stop, None)
@@ -158,6 +162,9 @@ impl Screen for GameScreen {
         if let Some(memory) = state.spawning_pool.force_get::<components::MapMemory>(state.player) {
             self.map_memory = Some(memory.clone());
         }
+        if let Some(spell_book) = state.spawning_pool.force_get::<components::SpellBook>(state.player) {
+            self.spell_book = Some(spell_book.clone());
+        }
     }
 
     fn handle_input(&mut self, input: &Input, _state: &mut GameState) -> ScreenResult {
@@ -205,21 +212,28 @@ impl Screen for GameScreen {
             Key { code: KeyCode::Text, printable: '.', .. } => {
                 Some(InputCommand::GameCommand{command: Command::Wait})
             },
-            Key { code: KeyCode::Text, printable: '1', .. } => {
-                Some(InputCommand::GameCommand{command: Command::WriteRune{
-                    spell: spells::Spells::Stun
-                }})
-            },
-            Key { code: KeyCode::Text, printable: '2', .. } => {
-                Some(InputCommand::GameCommand{command: Command::CastSpell{
-                    spell: spells::Spell::create(spells::Spells::Fog)
-                }})
-            },
             Key { code: KeyCode::Text, printable: '0', .. } => {
                 Some(InputCommand::ToggleOmnipotence)
             },
-            Key { code: KeyCode::Text, printable: '9', .. } => {
-                Some(InputCommand::SelfHeal)
+            Key { code: KeyCode::Text, printable: c, .. } if c.is_numeric() => {
+                if let Some(ref spell_book) = self.spell_book {
+                    println!("char: {}", c);
+                    let num = c.to_digit(10);
+                    println!("num: {:?}", num);
+                    if let Some(num) = num {
+                        if (num as usize) <= spell_book.spells.len() {
+                             Some(InputCommand::GameCommand{command: Command::WriteRune{
+                                spell: spell_book.spells[(num - 1) as usize]
+                            }})
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
             },
             _ => None
         };

@@ -65,12 +65,12 @@ impl Animation {
     }
 }
 
-pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool, _delta: f64) -> Offscreen {
+pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::MapMemory, spell_book: &components::SpellBook, game_state: &GameState, omnipotent: bool, _delta: f64) -> Offscreen {
     let mut screen = Offscreen::new(tcod.root.width(), tcod.root.height());
     render_map(&mut tcod.con, memory, game_state, omnipotent);
     render_entities(&mut tcod.con, memory, game_state, omnipotent);
     render_messages(&mut tcod.messages, game_state);
-    render_stats_panel(&mut tcod.stats_panel, stats, game_state);
+    render_stats_panel(&mut tcod.stats_panel, stats, spell_book, game_state);
     render_info_panel(&mut tcod.info_panel, game_state);
     tcod.animations = render_animations(&mut tcod.con, &mut tcod.animations, game_state, tcod.time);
 
@@ -246,7 +246,7 @@ fn render_info_panel(panel: &mut Offscreen, game_state: &GameState) {
     }
 }
 
-fn render_stats_panel(panel: &mut Offscreen, stats: &components::Stats, game_state: &GameState) {
+fn render_stats_panel(panel: &mut Offscreen, stats: &components::Stats, spell_book: &components::SpellBook, game_state: &GameState) {
     panel.set_default_background(colors::BLACK);
     panel.set_default_foreground(colors::LIGHT_GREY);
     panel.print_frame(0, 0, STATS_PANEL_WIDTH, STATS_PANEL_HEIGHT, true, BackgroundFlag::None, Some("Stats"));
@@ -274,6 +274,18 @@ fn render_stats_panel(panel: &mut Offscreen, stats: &components::Stats, game_sta
         TextAlignment::Left,
         &format!("Defense:  {}", stats.defense + utils::get_defense_bonus(game_state.player, &game_state.spawning_pool))
     );
+
+    let mut y = 9;
+    for spell in &spell_book.spells {
+        panel.print_ex(
+            1,
+            y,
+            BackgroundFlag::None,
+            TextAlignment::Left,
+            &format!("{} - Carve {}", y - 8, spell)
+        );
+        y += 1;
+    }
 }
 
 struct Bar {

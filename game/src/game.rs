@@ -429,5 +429,8 @@ fn create_player(spawning_pool: &mut components::SpawningPool, width: i32, heigh
         5,
         3
     ));
+    spawning_pool.set(player, components::SpellBook{
+        spells: vec![spells::Spells::Stun]
+    });
     player
 }
