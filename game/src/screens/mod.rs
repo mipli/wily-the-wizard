@@ -7,7 +7,6 @@ use tcod::input::{self, Mouse, Event, Key};
 use tcod::console::*;
 use tcod::colors;
 
-use systems;
 use render;
 
 use geo::*;
@@ -182,22 +181,4 @@ pub trait Screen {
     fn set_creator(&mut self, _screen: ScreenPointer) {}
     fn post_tick(&mut self, _state: &GameState) {}
     fn close(&mut self) { }
-}
-
-
-pub fn create_new_game() -> Game {
-    let state = GameState::new();
-
-    let fov = tcod::map::Map::new(state.map.dimensions.x, state.map.dimensions.y);
-
-    Game {
-        state,
-        fov,
-        tick_time: 0,
-        current_action: None,
-        action_queue: vec![],
-        reaction_queue: vec![],
-        rejection_queue: vec![],
-        systems: systems::DurationSystem::new()
-    }
 }

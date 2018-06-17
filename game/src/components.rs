@@ -195,6 +195,10 @@ impl MapMemory {
     pub fn explore(&mut self, x: i32, y: i32) {
         self.explored[(x + (y  * self.dimensions.x)) as usize] = true;
     }
+
+    pub fn explore_all(&mut self) {
+        self.explored = vec![true; (self.dimensions.y * self.dimensions.x) as usize];
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

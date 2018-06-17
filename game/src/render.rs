@@ -1,3 +1,4 @@
+use std::collections::{HashMap};
 use spawning_pool::{EntityId};
 use tcod;
 use tcod::console::*;
@@ -18,7 +19,8 @@ pub struct Tcod {
     pub info_panel: Offscreen,
     pub prev_time: f64,
     pub time: f64,
-    pub animations: Vec<Animation>
+    pub animations: Vec<Animation>,
+    pub status_animations: HashMap<EntityId, Animation>
 }
 
 impl Tcod {
@@ -72,6 +74,7 @@ pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::M
     render_messages(&mut tcod.messages, game_state);
     render_stats_panel(&mut tcod.stats_panel, stats, spell_book, game_state);
     render_info_panel(&mut tcod.info_panel, game_state);
+    render_status_animations(&mut tcod.con, &mut tcod.status_animations, game_state, tcod.time);
     tcod.animations = render_animations(&mut tcod.con, &mut tcod.animations, game_state, tcod.time);
 
     blit(&tcod.con, (0, 0), (MAP_WIDTH, MAP_HEIGHT), &mut screen, (0, 0), 1.0, 1.0);
@@ -79,6 +82,12 @@ pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::M
     blit(&tcod.stats_panel, (0, 0), (STATS_PANEL_WIDTH, STATS_PANEL_HEIGHT), &mut screen, (MAP_WIDTH, 0), 1.0, 1.0);
     blit(&tcod.info_panel, (0, 0), (INFO_PANEL_WIDTH, INFO_PANEL_HEIGHT), &mut screen, (MAP_WIDTH, STATS_PANEL_HEIGHT), 1.0, 1.0);
     screen
+}
+
+fn render_status_animations(con: &mut Offscreen, animations: &mut HashMap<EntityId, Animation>, state: &GameState, time: f64) {
+    for (_, animation) in animations.iter_mut() {
+        animate(con, animation, state, time);
+    }
 }
 
 fn render_animations(con: &mut Offscreen, animations: &mut Vec<Animation>, game_state: &GameState, time: f64) -> Vec<Animation>{

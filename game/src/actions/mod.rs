@@ -102,13 +102,26 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
             ActionResult::Performed{time: 0}
         },
         Command::CastSpell{ref spell} => {
-            let actor = utils::get_actor_name(action, &game_state.spawning_pool);
-            let msg = match action.target {
+            let msg = match action.actor {
                 Some(_) => {
-                    let target = utils::get_target_name(action, &game_state.spawning_pool);
-                    format!("The {} is casting {} on {} ", actor, spell.name, target)
-                },
-                None => format!("The {} is casting {}", actor, spell.name)
+                    let actor = utils::get_actor_name(action, &game_state.spawning_pool);
+                    match action.target {
+                        Some(_) => {
+                            let target = utils::get_target_name(action, &game_state.spawning_pool);
+                            format!("The {} is casting {} on {} ", actor, spell.name, target)
+                        },
+                        None => format!("The {} is casting {}", actor, spell.name)
+                    }
+                }, 
+                None => {
+                    match action.target {
+                        Some(_) => {
+                            let target = utils::get_target_name(action, &game_state.spawning_pool);
+                            format!("The {} is {}", target, spell.name)
+                        },
+                        None => format!("{} is cast", spell.name)
+                    }
+                }
             };
             game_state.messages.log(MessageLevel::Spell, msg);
             ActionResult::Performed{time: 200}
@@ -352,11 +365,13 @@ fn perform_pick_up_item(action: &Action, game_state: &mut GameState) {
 }
 
 fn perform_kill_entity(action: &Action, game_state: &mut GameState) {
-    let name = utils::get_actor_name(action, &game_state.spawning_pool);
-    if action.actor.unwrap() == game_state.player {
-        game_state.messages.log(MessageLevel::Important, format!("The {} has died!", name));
-    } else {
-        game_state.messages.log(MessageLevel::Info, format!("The {} has died!", name));
+    if game_state.spawning_pool.get::<components::Stats>(action.actor.unwrap()).is_some() {
+        let name = utils::get_actor_name(action, &game_state.spawning_pool);
+        if action.actor.unwrap() == game_state.player {
+            game_state.messages.log(MessageLevel::Important, format!("The {} has died!", name));
+        } else {
+            game_state.messages.log(MessageLevel::Info, format!("The {} has died!", name));
+        }
     }
     game_state.spawning_pool.remove_entity(action.actor.unwrap());
 }

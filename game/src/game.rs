@@ -49,7 +49,7 @@ impl GameState {
             map,
             scheduler,
             messages: vec![],
-            level: 1
+            level: 0
         }
     }
 
@@ -69,11 +69,15 @@ impl GameState {
 
         if let Some(memory) = self.spawning_pool.get_mut::<components::MapMemory>(self.player) {
             memory.reset();
+            memory.explore_all();
         }
-        if let Some(stats) = self.spawning_pool.get_mut::<components::Stats>(self.player) {
-            stats.max_health += 5;
-            stats.health = stats.max_health;
-            self.messages.log(MessageLevel::Important, "The player's wounds heal and his body grows stronger");
+
+        if self.level > 0 {
+            if let Some(stats) = self.spawning_pool.get_mut::<components::Stats>(self.player) {
+                stats.max_health += 5;
+                stats.health = stats.max_health;
+                self.messages.log(MessageLevel::Important, "The player's wounds heal and his body grows stronger");
+            }
         }
     }
 }

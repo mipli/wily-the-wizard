@@ -62,7 +62,8 @@ fn main() {
         info_panel: Offscreen::new(INFO_PANEL_WIDTH, INFO_PANEL_HEIGHT),
         prev_time: 0.0,
         time: 0.0,
-        animations: vec![]
+        animations: vec![],
+        status_animations: Default::default()
     };
 
     run_game(&mut tcod);
@@ -74,7 +75,7 @@ fn main() {
 
 fn run_game(tcod: &mut Tcod) {
     let mut manager = screens::ScreenManager::new();
-    let mut game = screens::create_new_game();
+    let mut game = create_new_game();
 
     manager.add(Box::new(screens::main_menu::MainMenuScreen::new()));
     let mut t_0 = time::precise_time_ns();
@@ -93,7 +94,7 @@ fn run_game(tcod: &mut Tcod) {
         manager.tick(&mut game.state, tcod, &mut actions);
 
         if actions.iter().any(|a| a.command == Command::CreateGame) {
-            game = screens::create_new_game();
+            game = create_new_game();
         }
         if actions.iter().any(|a| a.command == Command::LoadGame) {
             game.state = screens::main_menu::load_game();
@@ -227,3 +228,20 @@ pub fn update_fov_map(fov: &mut tcod::map::Map, map: &Map, spatial_table: &Spati
     }
 }
 
+fn create_new_game() -> Game {
+    let mut state = GameState::new();
+    state.new_level();
+
+    let fov = tcod::map::Map::new(state.map.dimensions.x, state.map.dimensions.y);
+
+    Game {
+        state,
+        fov,
+        tick_time: 0,
+        current_action: None,
+        action_queue: vec![],
+        reaction_queue: vec![],
+        rejection_queue: vec![],
+        systems: systems::DurationSystem::new()
+    }
+}

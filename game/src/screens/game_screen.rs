@@ -5,6 +5,7 @@ use spells;
 
 use utils;
 use components;
+use render;
 
 use screens::*;
 
@@ -68,6 +69,33 @@ impl Screen for GameScreen {
     }
 
     fn render(&mut self, delta: f64, state: &mut GameState, _fov: &tcod::map::Map, tcod: &mut render::Tcod) -> (ScreenResult, Option<ModularWindow>) {
+        for (entity, stats) in state.spawning_pool.get_all::<components::Stats>() {
+            let mut animiation = None;
+            for (effect, _) in stats.effects.iter() {
+                match effect {
+                    components::Effect::Stun => {
+                        animiation = Some(components::Effect::Stun);
+                    },
+                    _ => {}
+                }
+            }
+            match animiation {
+                Some(components::Effect::Stun) => {
+                    if !tcod.status_animations.contains_key(&entity) {
+                        tcod.status_animations.insert(entity, render::Animation::new(
+                            render::AnimationAnchor::Entity{entity},
+                            200.0, // time
+                            None, // duration
+                            vec![None, Some(('!', tcod::colors::LIGHTEST_GREEN))]
+                        ));
+                    }
+                },
+                _ => {
+                    tcod.status_animations.remove(&entity);
+                }
+            };
+            //stats.effects.insert(Effect::Stun, state.scheduler.time + 500);
+        }
         if let Some(ref stats) = self.stats {
             if let Some(ref memory) = self.map_memory {
                 if let Some(ref spell_book) = self.spell_book {
