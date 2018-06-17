@@ -1,4 +1,4 @@
-use std::collections::{HashMap};
+use fnv::FnvHashMap;
 use spawning_pool::{EntityId};
 use tcod;
 use tcod::console::*;
@@ -20,7 +20,7 @@ pub struct Tcod {
     pub prev_time: f64,
     pub time: f64,
     pub animations: Vec<Animation>,
-    pub status_animations: HashMap<EntityId, Animation>
+    pub status_animations: FnvHashMap<EntityId, Animation>
 }
 
 impl Tcod {
@@ -70,7 +70,7 @@ impl Animation {
 pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::MapMemory, spell_book: &components::SpellBook, game_state: &GameState, omnipotent: bool, _delta: f64) -> Offscreen {
     let mut screen = Offscreen::new(tcod.root.width(), tcod.root.height());
     render_map(&mut tcod.con, memory, game_state, omnipotent);
-    render_entities(&mut tcod.con, memory, game_state, omnipotent);
+    render_entities(&mut tcod.con, memory, game_state, omnipotent, &mut tcod.status_animations);
     render_messages(&mut tcod.messages, game_state);
     render_stats_panel(&mut tcod.stats_panel, stats, spell_book, game_state);
     render_info_panel(&mut tcod.info_panel, game_state);
@@ -84,7 +84,7 @@ pub fn render(tcod: &mut Tcod, stats: &components::Stats, memory: &components::M
     screen
 }
 
-fn render_status_animations(con: &mut Offscreen, animations: &mut HashMap<EntityId, Animation>, state: &GameState, time: f64) {
+fn render_status_animations(con: &mut Offscreen, animations: &mut FnvHashMap<EntityId, Animation>, state: &GameState, time: f64) {
     for (_, animation) in animations.iter_mut() {
         animate(con, animation, state, time);
     }
@@ -136,6 +136,8 @@ fn render_messages(con: &mut Offscreen, game_state: &GameState) {
 }
 
 struct EntityRendingInfo {
+    id: EntityId,
+    effects: Vec<components::Effect>,
     pos: Point,
     glyph: char,
     color: colors::Color,
@@ -144,7 +146,7 @@ struct EntityRendingInfo {
     visible: bool,
 }
 
-fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool) {
+fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_state: &GameState, omnipotent: bool, status_animations: &mut FnvHashMap<EntityId, Animation>) {
     let ids = game_state.spawning_pool.get_all::<components::Visual>();
     let mut to_draw: Vec<EntityRendingInfo> = ids.iter()
         .map(|&(id, _)| {
@@ -155,23 +157,27 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
             if physics.is_none() || visual.is_none() || flags.is_none() {
                 return None;
             }
-            let slowed = match stats {
-                Some(stats) => stats.effects.get(&components::Effect::Slow).is_some(),
-                None => false
-            };
-            let color = if slowed {
-                visual.unwrap().color + colors::SKY
-            } else {
-                visual.unwrap().color
-            };
             let pos = physics.unwrap().coord;
+            let visible = memory.is_visible(pos.x, pos.y); 
+            let effects = match stats {
+                Some(stats) => {
+                    if visible {
+                        stats.effects.iter().map(|(e, _)| *e).collect::<Vec<_>>()
+                    } else {
+                        Default::default()
+                    }
+                },
+                None => Default::default()
+            };
             Some(EntityRendingInfo {
+                id,
                 pos,
-                color,
+                effects,
+                color: visual.unwrap().color,
                 glyph: visual.unwrap().glyph,
                 solid: flags.unwrap().solid,
                 always_display: visual.unwrap().always_display,
-                visible: memory.is_visible(pos.x, pos.y),
+                visible
             })
         }).filter(|info| {
             if let Some(info) = info {
@@ -190,6 +196,7 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
         a.solid.cmp(&b.solid)
     });
     for draw in to_draw {
+        status_animation(draw.id, draw.effects, status_animations);
         let col = if omnipotent || draw.visible {
             draw.color
         } else {
@@ -198,6 +205,33 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
         con.set_default_foreground(col);
         con.put_char(draw.pos.x, draw.pos.y, draw.glyph, BackgroundFlag::None);
     }
+}
+
+fn status_animation(entity: EntityId, effects: Vec<components::Effect>, status_animations: &mut FnvHashMap<EntityId, Animation>) {
+    let mut animiation = None;
+    for effect in effects.iter() {
+        match effect {
+            components::Effect::Stun => {
+                animiation = Some(components::Effect::Stun);
+            },
+            _ => {}
+        }
+    }
+    match animiation {
+        Some(components::Effect::Stun) => {
+            if !status_animations.contains_key(&entity) {
+                status_animations.insert(entity, Animation::new(
+                    AnimationAnchor::Entity{entity},
+                    200.0, // time
+                    None, // duration
+                    vec![None, Some(('!', tcod::colors::LIGHTEST_GREEN))]
+                ));
+            }
+        },
+        _ => {
+            status_animations.remove(&entity);
+        }
+    };
 }
 
 fn shade_color(col: colors::Color) -> colors::Color {

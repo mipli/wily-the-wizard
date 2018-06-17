@@ -2,6 +2,7 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+extern crate fnv;
 extern crate time;
 extern crate yaml_rust;
 extern crate tcod;

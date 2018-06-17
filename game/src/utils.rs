@@ -75,9 +75,26 @@ pub fn describe_entity(entity: EntityId, spawning_pool: &components::SpawningPoo
         Some(visual) => visual.glyph,
         None => ' '
     };
-    if wielding != "" {
-        return format!("({}) A {} wielding a {}", glyph, name, wielding);
+    let mut desc = if wielding != "" {
+        format!("({}) A {} wielding a {}", glyph, name, wielding)
     } else {
-        return format!("({}) A {}", glyph, name);
+        format!("({}) A {}", glyph, name)
+    };
+    if let Some(stats) = spawning_pool.get::<components::Stats>(entity) {
+        for (effect, _) in stats.effects.iter() {
+            match effect {
+                components::Effect::Stun => {
+                    desc = format!("{}, Stunned", desc);
+                },
+                components::Effect::Slow => {
+                    desc = format!("{}, Slowed", desc);
+                },
+                components::Effect::Confuse => {
+                    desc = format!("{}, Confused", desc);
+                }
+            }
+        }
     }
+
+    return desc;
 }

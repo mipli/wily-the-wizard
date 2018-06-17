@@ -127,20 +127,12 @@ impl Game {
             }
         }
         self.current_action = None;
-        if !self.action_queue.is_empty() && self.action_queue[0].command != Command::Wait {
-            println!("Action Queue: {:?}", self.action_queue);
-        }
 
         let mut performed_action = false;
         let mut require_information = false;
         while !self.action_queue.is_empty() && !require_information {
             if self.current_action.is_none() {
                 self.current_action = Some(self.action_queue.remove(0));
-            }
-            if let Some(ref act) = self.current_action {
-                if act.command != Command::Wait {
-                    println!("Current Action: {:?}", self.current_action);
-                }
             }
             let res = self.action_tick(animations);
             require_information = res == ActionTickResult::RequireInformation;
