@@ -137,7 +137,7 @@ fn render_messages(con: &mut Offscreen, game_state: &GameState) {
 
 struct EntityRendingInfo {
     id: EntityId,
-    effects: Vec<components::Effect>,
+    animate_effect: Option<components::Effect>,
     pos: Point,
     glyph: char,
     color: colors::Color,
@@ -159,20 +159,20 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
             }
             let pos = physics.unwrap().coord;
             let visible = memory.is_visible(pos.x, pos.y); 
-            let effects = match stats {
+            let animate_effect = match stats {
                 Some(stats) => {
                     if visible {
-                        stats.effects.iter().map(|(e, _)| *e).collect::<Vec<_>>()
+                        stats.effects.iter().map(|(e, _)| *e).next()
                     } else {
-                        Default::default()
+                        None
                     }
                 },
-                None => Default::default()
+                None => None
             };
             Some(EntityRendingInfo {
                 id,
                 pos,
-                effects,
+                animate_effect,
                 color: visual.unwrap().color,
                 glyph: visual.unwrap().glyph,
                 solid: flags.unwrap().solid,
@@ -196,7 +196,7 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
         a.solid.cmp(&b.solid)
     });
     for draw in to_draw {
-        status_animation(draw.id, draw.effects, status_animations);
+        status_animation(draw.id, draw.animate_effect, status_animations);
         let col = if omnipotent || draw.visible {
             draw.color
         } else {
@@ -207,17 +207,8 @@ fn render_entities(con: &mut Offscreen, memory: &components::MapMemory, game_sta
     }
 }
 
-fn status_animation(entity: EntityId, effects: Vec<components::Effect>, status_animations: &mut FnvHashMap<EntityId, Animation>) {
-    let mut animiation = None;
-    for effect in effects.iter() {
-        match effect {
-            components::Effect::Stun => {
-                animiation = Some(components::Effect::Stun);
-            },
-            _ => {}
-        }
-    }
-    match animiation {
+fn status_animation(entity: EntityId, animate_effect: Option<components::Effect>, status_animations: &mut FnvHashMap<EntityId, Animation>) {
+    match animate_effect {
         Some(components::Effect::Stun) => {
             if !status_animations.contains_key(&entity) {
                 status_animations.insert(entity, Animation::new(
