@@ -6,16 +6,16 @@ use geo::{Rect, Point, get_neigbours};
 use map::Map;
 
 #[derive(Debug)]
-struct Leaf {
-    dim: Rect,
-    left: Box<Option<Leaf>>,
-    right: Box<Option<Leaf>>,
-    vert: bool,
-    room: Option<Rect>
+pub struct Leaf {
+    pub dim: Rect,
+    pub left: Box<Option<Leaf>>,
+    pub right: Box<Option<Leaf>>,
+    pub vert: bool,
+    pub room: Option<Rect>
 }
 
 impl Leaf {
-    fn new(x: i32, y: i32, width: i32, height: i32) -> Leaf {
+    pub fn new(x: i32, y: i32, width: i32, height: i32) -> Leaf {
         Leaf {
             dim: Rect::new(x, y, width, height),
             left: Box::new(None),
@@ -59,7 +59,7 @@ impl Leaf {
     }
 }
 
-fn split<T: Rng>(leaf: &mut Leaf, min_size: i32, rng: &mut T) {
+pub fn split<T: Rng>(leaf: &mut Leaf, min_size: i32, rng: &mut T) {
     leaf.split(min_size, rng);
     if let Some(ref mut left) = *leaf.left {
         split(left, min_size, rng);
@@ -88,7 +88,7 @@ fn create_rooms<T: Rng>(leaf: &mut Leaf, min_size: i32, rng: &mut T) {
     }
 }
 
-fn carve<T: Rng>(leaf: &Leaf, map: &mut Map, rng: &mut T) -> Vec<Rect> {
+pub fn carve<T: Rng>(leaf: &Leaf, map: &mut Map, connect: bool, rng: &mut T) -> Vec<Rect> {
     if let Some(ref room) = leaf.room {
         for x in 0..room.width {
             for y in 0..room.height {
@@ -99,17 +99,19 @@ fn carve<T: Rng>(leaf: &Leaf, map: &mut Map, rng: &mut T) -> Vec<Rect> {
         return vec![room.clone()]
     } else {
         let mut left_rooms = if let Some(ref left) = *leaf.left {
-            carve(left, map, rng)
+            carve(left, map, connect, rng)
         } else {
             vec![]
         };
         let mut right_rooms = if let Some(ref right) = *leaf.right {
-            carve(right, map, rng)
+            carve(right, map, connect, rng)
         } else {
             vec![]
         };
 
-        connect_rooms(&left_rooms, &right_rooms, map, rng);
+        if connect {
+            connect_rooms(&left_rooms, &right_rooms, map, rng);
+        }
 
         let mut rooms: Vec<Rect> = vec![];
         rooms.append(&mut left_rooms);
@@ -168,7 +170,7 @@ fn add_doors<T: Rng>(map: &mut Map, rng: &mut T) {
         }
         for x in (room.x1-1)..(room.x2 + 1) {
             for y in (room.y1-1)..(room.y2 + 1) {
-                if map.get(x, y) == 0 {
+                if map.get(x, y) == Some(0) {
                     continue;
                 }
                 if x == room.x1-1 
@@ -182,7 +184,7 @@ fn add_doors<T: Rng>(map: &mut Map, rng: &mut T) {
                         continue;
                     }
                     let walls: Vec<&Point> = neighbours.iter()
-                        .filter(|pos| map.in_bounds(pos.x, pos.y) && map.get(pos.x, pos.y) == 1)
+                        .filter(|pos| map.in_bounds(pos.x, pos.y) && map.get(pos.x, pos.y) == Some(1))
                         .collect();
                     if walls.len() == 2 {
                         places.insert(Point::new(x, y));
@@ -193,6 +195,7 @@ fn add_doors<T: Rng>(map: &mut Map, rng: &mut T) {
     }
     for pos in places {
         map.set(pos.x, pos.y, 2);
+        map.doors.push(pos);
     }
 }
 
@@ -201,8 +204,8 @@ pub fn generate<T: Rng>(width: i32, height: i32, min_size: i32, rng: &mut T) -> 
     split(&mut root, min_size, rng);
     create_rooms(&mut root, min_size, rng);
     let mut map = Map::new(width - 2, height - 2);
-    carve(&root, &mut map, rng);
-    map = Map::pad_map(&map);
+    carve(&root, &mut map, true, rng);
+    map = Map::pad_map(map);
     add_stairs(&mut map, rng);
     add_doors(&mut map, rng);
     map

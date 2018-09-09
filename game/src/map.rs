@@ -7,7 +7,7 @@ use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
 use spells;
 use spatial::*;
-use map_generator::{Map as GeneratedMap, bsp};
+use map_generator::{Map as GeneratedMap, bsp, tower};
 use components;
 use geo::*;
 use spawning_pool::{EntityId};
@@ -90,7 +90,14 @@ pub fn can_walk(position: Point, grid: &SpatialTable, map: &Map) -> bool {
     }
 }
 
-pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler, seed: Option<[u32; 4]>) -> Map{
+pub fn empty_map(width: i32, height: i32) -> Map {
+    Map {
+        dimensions: Point::new(width, height),
+        cells: vec![]
+    }
+}
+
+pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler, seed: Option<[u32; 4]>) -> Map {
     let creatures = load_creatures();
     let mut rng: XorShiftRng = if let Some(seed) = seed {
         SeedableRng::from_seed(seed)
@@ -98,7 +105,7 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
         rand::weak_rng()
     };
 
-    let generated = bsp::generate(width, height, 6, &mut rng);
+    let generated = tower::generate(width, height, 6, &mut rng);
     let map = Map::new(&generated);
 
     spawning_pool.set(player, components::Physics{coord: generated.rooms[0].center()});
@@ -140,12 +147,8 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
         }
     }
 
-    for x in 0..generated.width {
-        for y in 0..generated.height {
-            if generated.get(x, y) == 2 {
-                add_door((x, y).into(), spawning_pool);
-            }
-        }
+    for door in &generated.doors {
+        add_door(*door, spawning_pool);
     }
 
     map
@@ -423,7 +426,6 @@ fn add_healing_potion(pos: Point, spawning_pool: &mut components::SpawningPool) 
 }
 
 fn add_experience_potion(pos: Point, spawning_pool: &mut components::SpawningPool) -> EntityId {
-    println!("Adding exp at {}", pos);
     let item = spawning_pool.spawn_entity();
     spawning_pool.set(item, components::Visual{always_display: false, glyph: '!', color: colors::LIGHTEST_GREEN});
     spawning_pool.set(item, components::Physics{coord: pos});

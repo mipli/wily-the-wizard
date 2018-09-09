@@ -1,12 +1,14 @@
+use std::fmt;
 use geo::{Rect, Point};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct Map {
     pub width: i32,
     pub height: i32,
     pub stairs: Option<Point>,
     pub data: Vec<i32>,
-    pub rooms: Vec<Rect>
+    pub rooms: Vec<Rect>,
+    pub doors: Vec<Point>
 }
 
 impl Map {
@@ -18,7 +20,8 @@ impl Map {
             height,
             data,
             stairs: None,
-            rooms: vec![]
+            rooms: vec![],
+            doors: vec![]
         }
     }
 
@@ -30,23 +33,30 @@ impl Map {
         self.stairs = Some(pos);
     }
 
-    pub fn pad_map(map: &Map) -> Map {
+    pub fn pad_map(map: Map) -> Map {
         let mut data: Vec<i32> = vec![];
         data.resize(((map.width + 2) * (map.height + 2)) as usize, 0);
         for x in 0..map.width {
             for y in 0..map.height {
-                data[((y + 1) * (map.width + 2) + (x + 1)) as usize] = map.get(x, y);
+                match map.get(x, y) {
+                    Some(v) => data[((y + 1) * (map.width + 2) + (x + 1)) as usize] = v,
+                    None => {}
+                }
             }
         }
         let rooms = map.rooms.iter().map(|room| {
             Rect::new(room.x1 + 1, room.y1 + 1, room.width, room.height)
+        }).collect();
+        let doors = map.doors.iter().map(|door| {
+            Point::new(door.x + 1, door.y + 1)
         }).collect();
         Map {
             width: map.width + 2,
             height: map.height + 2,
             stairs: map.stairs,
             data,
-            rooms: rooms
+            rooms,
+            doors,
         }
     }
 
@@ -58,12 +68,43 @@ impl Map {
         self.rooms.push(room);
     }
 
-    pub fn get(&self, x: i32, y: i32) -> i32 {
-        self.data[self.to_index(x, y)]
+    pub fn get(&self, x: i32, y: i32) -> Option<i32> {
+        let index = self.to_index(x, y);
+        if index < self.data.len() {
+            Some(self.data[self.to_index(x, y)])
+        } else {
+            None
+        }
     }
 
     pub fn set(&mut self, x: i32, y: i32, v: i32) {
         let index = self.to_index(x, y);
         self.data[index] = v;
+    }
+}
+
+impl fmt::Debug for Map {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use std::char;
+        let mut map = "".to_string();
+        for y in 0..self.height {
+            map = format!("{}\n", map);
+            for x in 0..self.width {
+                let c = self.data[self.to_index(x, y)];
+                if c == 0 {
+                    map = format!("{}.", map);
+                } else if c < 10 {
+                    map = format!("{}{}", map, c);
+                } else if c < 37 {
+                    match char::from_u32((c + 55) as u32) {
+                        Some(d) => map = format!("{}{}", map, d),
+                        None => map = format!("{}?", map)
+                    }
+                } else {
+                    map = format!("{}?", map);
+                }
+            }
+        }
+        write!(f, "{}", map)
     }
 }

@@ -1,3 +1,4 @@
+use std::cmp::min;
 use super::Point;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
@@ -27,5 +28,45 @@ impl Rect {
 
     pub fn intersect(&self, other: &Rect) -> bool {
         (self.x1 <= other.x2) && (self.x2 >= other.x1) && (self.y1 <= other.y2) && (self.y2 >= other.y1)
+    }
+    
+    pub fn distance(&self, other: &Rect) -> i32 {
+        if self.intersect(other) {
+            0
+        } else {
+            if other.y1 >= self.y1 && other.y1 <= self.y2 {
+                // horizontal overlap
+                if other.x2 < self.x1 {
+                    // to the left
+                    self.x1 - other.x2
+                } else {
+                    // to the right
+                    other.x1 - self.x2
+                }
+            } else if other.x1 >= self.x1 && other.x1 <= self.x2 {
+                // vertical overlap
+                if other.y2 < self.y1 {
+                    // above
+                    self.y1 - other.y2
+                } else {
+                    // beneath
+                    other.y1 - self.y2
+                }
+            } else if self.x1 > other.x2 && self.y1 > other.y2 {
+                // top left
+                Point::new(self.x1, self.y1).tile_distance((other.x2, other.y2))
+            } else if self.x1 > other.x2 && self.y1 > other.y2 {
+                // bottom left
+                Point::new(self.x2, self.y1).tile_distance((other.x1, other.y2))
+            } else if other.x1 > self.x2 && self.y2 < other.y1 {
+                // top right
+                Point::new(self.x1, self.y2).tile_distance((other.x1, other.y2))
+            } else if other.x1 > self.x2 && self.y2 < other.y1 {
+                // bottom right
+                Point::new(self.x2, self.y2).tile_distance((other.x1, other.y1))
+            } else {
+                unreachable!("Error calculating distance from {:?} - {:?}", self, other);
+            }
+        }
     }
 }

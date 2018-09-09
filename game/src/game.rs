@@ -32,11 +32,12 @@ pub struct GameState {
 
 impl GameState {
     pub fn new() -> GameState {
+        println!("new game state");
         let mut spawning_pool = components::SpawningPool::new();
         let player = create_player(&mut spawning_pool, MAP_WIDTH, MAP_HEIGHT);
         let mut scheduler = Scheduler::new();
         scheduler.schedule_entity(player, 0, &spawning_pool);
-        let map = create_map(1, player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler, None);
+        let map = empty_map(MAP_WIDTH, MAP_HEIGHT); //create_map(1, player, MAP_WIDTH, MAP_HEIGHT, &mut spawning_pool, &mut scheduler, None);
 
         let mut spatial_table = SpatialTable::new(map.dimensions.x, map.dimensions.y);
         spatial_table.reset(&spawning_pool);
@@ -72,7 +73,7 @@ impl GameState {
             memory.explore_all();
         }
 
-        if self.level > 0 {
+        if self.level > 1 {
             if let Some(stats) = self.spawning_pool.get_mut::<components::Stats>(self.player) {
                 stats.max_health += 5;
                 stats.health = stats.max_health;
