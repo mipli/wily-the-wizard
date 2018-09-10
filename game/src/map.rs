@@ -7,7 +7,7 @@ use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
 use spells;
 use spatial::*;
-use map_generator::{Map as GeneratedMap, bsp, tower};
+use map_generator::{Map as GeneratedMap, bsp, tower, corridor};
 use components;
 use geo::*;
 use spawning_pool::{EntityId};
@@ -98,17 +98,20 @@ pub fn empty_map(width: i32, height: i32) -> Map {
 }
 
 pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawning_pool: &mut components::SpawningPool, scheduler: &mut Scheduler, seed: Option<[u32; 4]>) -> Map {
+    /*
     let creatures = load_creatures();
+    */
     let mut rng: XorShiftRng = if let Some(seed) = seed {
         SeedableRng::from_seed(seed)
     } else {
         rand::weak_rng()
     };
 
-    let generated = tower::generate(width, height, 6, &mut rng);
+    let generated = corridor::generate(width, height, 6, &mut rng);
     let map = Map::new(&generated);
 
     spawning_pool.set(player, components::Physics{coord: generated.rooms[0].center()});
+    /*
     if level == 5 {
         add_portal(generated.stairs.unwrap(), spawning_pool);
     } else {
@@ -150,6 +153,7 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
     for door in &generated.doors {
         add_door(*door, spawning_pool);
     }
+    */
 
     map
 }
