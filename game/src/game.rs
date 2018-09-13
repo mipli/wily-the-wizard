@@ -70,7 +70,7 @@ impl GameState {
 
         if let Some(memory) = self.spawning_pool.get_mut::<components::MapMemory>(self.player) {
             memory.reset();
-            memory.explore_all();
+            // memory.explore_all();
         }
 
         if self.level > 1 {
@@ -287,7 +287,7 @@ impl Game {
             None => return
         };
         if self.state.spawning_pool.get::<components::MapMemory>(entity).is_some() {
-            self.calculate_fov(coord.x, coord.y, 10);
+            self.calculate_fov(coord.x, coord.y, 20);
         }
         if let Some(map_memory) = self.state.spawning_pool.get_mut::<components::MapMemory>(entity) {
             map_memory.clear_visible();
