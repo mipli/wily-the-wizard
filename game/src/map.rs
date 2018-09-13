@@ -7,7 +7,7 @@ use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
 use spells;
 use spatial::*;
-use map_generator::{Map as GeneratedMap, bsp, tower};
+use map_generator::{Map as GeneratedMap, bsp, tower, corridor};
 use components;
 use geo::*;
 use spawning_pool::{EntityId};
@@ -105,7 +105,7 @@ pub fn create_map(level: u32, player: EntityId, width: i32, height: i32, spawnin
         rand::weak_rng()
     };
 
-    let generated = tower::generate(width, height, 6, &mut rng);
+    let generated = corridor::generate(width, height, 6, &mut rng);
     let map = Map::new(&generated);
 
     spawning_pool.set(player, components::Physics{coord: generated.rooms[0].center()});
