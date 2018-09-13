@@ -1,9 +1,7 @@
-use std::cmp::{min, max};
-use std::collections::HashSet;
 use rand::{Rng};
 
-use geo::{Rect, Point, get_neigbours};
-use map::Map;
+use geo::{Point};
+use super::Map;
 
 #[derive(Debug)]
 enum Orientation {

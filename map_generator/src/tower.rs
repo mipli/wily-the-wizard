@@ -1,8 +1,8 @@
 use rand::{Rng};
 
 use geo::{Rect, Point, get_neigbours};
-use map::Map;
-use bsp::{Leaf, carve, split};
+use super::map::Map;
+use super::bsp::{Leaf, carve, split};
 
 struct ConnectionMap {
     pub area_count: u32,

@@ -2,6 +2,7 @@
 name = "map_generator"
 version = "0.1.0"
 authors = ["Michael A. Plikk <michael@plikk.com>"]
+edition = "2018"
 
 [dependencies]
 geo = { path = "../geo" }

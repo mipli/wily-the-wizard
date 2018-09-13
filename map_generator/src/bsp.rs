@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use rand::{Rng};
 
 use geo::{Rect, Point, get_neigbours};
-use map::Map;
+use super::map::Map;
 
 #[derive(Debug)]
 pub struct Leaf {

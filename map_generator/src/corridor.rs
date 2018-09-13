@@ -2,7 +2,7 @@ use rand::{Rng};
 use std::collections::{HashSet};
 
 use geo::{Point, Rect, get_neigbours};
-use map::Map;
+use super::Map;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum SpawnDirection {

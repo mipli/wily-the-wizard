@@ -1,13 +1,13 @@
-extern crate serde;
 #[macro_use] extern crate serde_derive;
 
 mod point;
 mod rect;
 
-pub use point::Point;
-pub use rect::Rect;
+pub use crate::point::Point;
+pub use crate::rect::Rect;
 
-pub fn get_neigbours(x: i32, y: i32, only_cardinal: bool) -> Vec<Point> {
+
+pub fn get_neigbours(x: i32, y: i32, only_cardinal: bool) -> Vec<point::Point> {
     let mut cells = vec![];
     let dirs = if only_cardinal {
         vec![(0, -1), (-1, 0), (1, 0), (0, 1)]
@@ -16,7 +16,7 @@ pub fn get_neigbours(x: i32, y: i32, only_cardinal: bool) -> Vec<Point> {
     };
 
     for dir in dirs {
-        let p: Point = (x + dir.0, y + dir.1).into();
+        let p: point::Point = (x + dir.0, y + dir.1).into();
         cells.push(p);
     }
     cells

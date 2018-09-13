@@ -1,5 +1,4 @@
-use std::cmp::min;
-use super::Point;
+use super::point::Point;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Rect {

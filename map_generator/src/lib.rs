@@ -10,4 +10,4 @@ pub mod corridor;
 mod map;
 
 
-pub use map::Map;
+pub use crate::map::Map;
