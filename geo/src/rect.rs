@@ -29,7 +29,7 @@ impl Rect {
     pub fn intersect(&self, other: &Rect) -> bool {
         (self.x1 <= other.x2) && (self.x2 >= other.x1) && (self.y1 <= other.y2) && (self.y2 >= other.y1)
     }
-    
+
     pub fn distance(&self, other: &Rect) -> i32 {
         if self.intersect(other) {
             0
@@ -68,5 +68,22 @@ impl Rect {
                 unreachable!("Error calculating distance from {:?} - {:?}", self, other);
             }
         }
+    }
+
+    pub fn move_to(&mut self, point: Point) {
+        *self = Rect::new(point.x, point.y, self.width, self.height);
+    }
+
+    pub fn grow(&mut self, delta: Point) -> Result<(), ()> {
+        let width = self.width + delta.x;
+        let height = self.height + delta.y;
+        if width < 0 || height < 0 {
+            return Err(());
+        }
+        self.width = width;
+        self.height = height;
+        self.x2 = self.x1 + self.width;
+        self.y2 = self.y1 + self.height;
+        Ok(())
     }
 }

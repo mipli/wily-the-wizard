@@ -1,3 +1,5 @@
+#![feature(drain_filter)]
+
 extern crate rand;
 extern crate geo;
 
