@@ -1,8 +1,8 @@
-use rules::definitions::*;
-use map::*;
-use actions::*;
-use game::*;
-use components;
+use crate::rules::definitions::*;
+use crate::map::*;
+use crate::actions::*;
+use crate::game::*;
+use crate::components;
 
 pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: &mut Vec<Action>, _reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {

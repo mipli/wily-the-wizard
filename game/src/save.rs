@@ -3,7 +3,7 @@ use serde_json;
 use std::io::{self, Read, Write};
 use std::fs::File;
 
-use game::*;
+use crate::game::*;
 
 pub fn save_game(game_state: &GameState) -> Result<(), io::Error> {
     let save_data = serde_json::to_string(&game_state).unwrap();

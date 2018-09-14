@@ -1,13 +1,13 @@
 use tcod::input::{KeyCode};
 use std::rc::Rc;
 use std::cell::RefCell;
-use spells;
+use crate::spells;
 
-use utils;
-use components;
-use render;
+use crate::utils;
+use crate::components;
+use crate::render;
 
-use screens::*;
+use crate::screens::*;
 
 enum InputCommand {
     SelfHeal,

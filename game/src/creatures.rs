@@ -3,9 +3,9 @@ use std::fs::File;
 use tcod::colors;
 
 use spawning_pool::{EntityId};
-use components;
 use geo::*;
-use spells;
+use crate::components;
+use crate::spells;
 
 #[derive(Debug)]
 pub struct CreatureData {

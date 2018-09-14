@@ -1,10 +1,10 @@
-use utils;
-use actions::*;
-use game::*;
-use components;
-use spells;
+use crate::utils;
+use crate::actions::*;
+use crate::game::*;
+use crate::components;
+use crate::spells;
 
-use rules::definitions::*;
+use crate::rules::definitions::*;
 
 pub fn use_item(action: &mut Action, game_state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {

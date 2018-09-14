@@ -7,12 +7,10 @@ use tcod::input::{self, Mouse, Event, Key};
 use tcod::console::*;
 use tcod::colors;
 
-use render;
-
 use geo::*;
-use consts::*;
-use actions::*;
-use game::*;
+use crate::consts::*;
+use crate::actions::*;
+use crate::*;
 
 pub mod game_screen;
 pub mod main_menu;

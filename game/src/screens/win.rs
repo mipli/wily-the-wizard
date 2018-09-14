@@ -1,6 +1,6 @@
 use tcod::console::*;
 use tcod::colors;
-use screens::*;
+use crate::screens::*;
 
 pub type WinScreenCallback = FnMut(&mut Box<Screen>);
 

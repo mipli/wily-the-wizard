@@ -3,18 +3,18 @@ use inflector::Inflector;
 use geo::*;
 use std::cmp::min;
 use tcod::colors;
-use game::*;
-use components;
-use components::{SpawningPool};
+use crate::game::*;
+use crate::components;
+use crate::components::{SpawningPool};
 
 mod items;
 mod definitions;
 
-use utils;
-use messages::*;
+use crate::utils;
+use crate::messages::*;
 pub use self::definitions::*;
 use self::items::*;
-use spells;
+use crate::spells;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ActionResult {

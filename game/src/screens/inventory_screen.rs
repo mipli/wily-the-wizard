@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use tcod::console::*;
 use tcod::colors;
 use tcod::input::{KeyCode};
-use screens::*;
-use screens::utils::{get_menu};
+use crate::screens::*;
+use crate::screens::utils::{get_menu};
 
 use spawning_pool::{EntityId};
-use components;
+use crate::components;
 
 pub struct InventoryScreen { 
     exit: bool,

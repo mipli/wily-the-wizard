@@ -2,7 +2,7 @@ use std::cmp::{Ordering};
 use std::collections::BinaryHeap;
 
 use spawning_pool::EntityId;
-use components;
+use crate::components;
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 struct ScheduledEntity {

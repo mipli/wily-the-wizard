@@ -1,9 +1,9 @@
 use inflector::Inflector;
 
-use actions::definitions::*;
-use utils;
-use messages::*;
-use game::*;
+use crate::actions::definitions::*;
+use crate::utils;
+use crate::messages::*;
+use crate::game::*;
 
 pub fn perform_use_item(action: &Action, game_state: &mut GameState) {
     if let Command::UseItem{item_id} = action.command {

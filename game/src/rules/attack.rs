@@ -1,9 +1,9 @@
 use std::cmp::max;
 
-use rules::definitions::*;
-use game::*;
-use actions::*;
-use components;
+use crate::rules::definitions::*;
+use crate::game::*;
+use crate::actions::*;
+use crate::components;
 
 pub fn attack(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let Command::AttackEntity{bonus_strength, bonus_defense} = action.command {

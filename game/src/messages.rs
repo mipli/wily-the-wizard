@@ -1,6 +1,6 @@
 use tcod::colors::Color;
 use tcod::colors;
-use consts::*;
+use crate::consts::*;
 
 pub type Messages = Vec<(String, Color)>;
 

@@ -1,7 +1,7 @@
 use tcod::console::*;
 use tcod::colors;
 use tcod::input::{KeyCode};
-use screens::*;
+use crate::screens::*;
 
 pub struct GameOverScreen { 
     exit: bool,

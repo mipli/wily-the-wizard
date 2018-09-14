@@ -1,6 +1,6 @@
-use components;
+use crate::components;
 use spawning_pool::EntityId;
-use actions::{ActionTarget, Action};
+use crate::actions::{ActionTarget, Action};
 use geo::*;
 
 

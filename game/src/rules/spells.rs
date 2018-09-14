@@ -1,13 +1,13 @@
 use tcod::line::{Line};
 use geo::*;
 use spawning_pool::{EntityId};
-use utils;
-use actions::*;
-use game::*;
-use components;
-use spells::*;
+use crate::utils;
+use crate::actions::*;
+use crate::game::*;
+use crate::components;
+use crate::spells::*;
 
-use rules::definitions::*;
+use crate::rules::definitions::*;
 
 pub fn lightning_strike(action: &mut Action, _state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let  Command::LightningStrike{damage} = action.command {

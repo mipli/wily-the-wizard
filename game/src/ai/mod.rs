@@ -1,6 +1,6 @@
 use spawning_pool::{EntityId};
-use game::*;
-use actions::*;
+use crate::*;
+use crate::actions::*;
 
 mod behaviour;
 

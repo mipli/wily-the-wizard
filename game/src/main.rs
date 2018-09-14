@@ -1,3 +1,4 @@
+ #![feature(uniform_paths)]
  #![feature(drain_filter)]
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -20,24 +21,24 @@ use tcod::console::*;
 extern crate map_generator;
 extern crate geo;
 
-mod messages;
-mod spells;
-mod screens;
-mod save;
-mod path;
-mod utils;
-mod consts;
-mod spatial;
-mod map;
-mod scheduler;
-mod systems;
-mod components;
-mod render;
-mod game;
-mod ai;
-mod actions;
-mod rules;
-mod creatures;
+pub mod messages;
+pub mod spells;
+pub mod screens;
+pub mod save;
+pub mod path;
+pub mod utils;
+pub mod consts;
+pub mod spatial;
+pub mod map;
+pub mod scheduler;
+pub mod systems;
+pub mod components;
+pub mod render;
+pub mod game;
+pub mod ai;
+pub mod actions;
+pub mod rules;
+pub mod creatures;
 
 use game::*;
 use geo::*;

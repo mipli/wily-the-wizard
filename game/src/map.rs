@@ -5,14 +5,14 @@ use rand;
 use rand::*;
 use rand::distributions::{IndependentSample, Weighted, WeightedChoice};
 
-use spells;
-use spatial::*;
+use crate::spells;
+use crate::spatial::*;
 use map_generator::{Map as GeneratedMap, bsp, tower, corridor};
-use components;
+use crate::components;
 use geo::*;
 use spawning_pool::{EntityId};
-use creatures::*;
-use scheduler::{Scheduler};
+use crate::creatures::*;
+use crate::scheduler::{Scheduler};
 
 #[derive(Copy, Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum TileType {

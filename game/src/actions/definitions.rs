@@ -1,6 +1,6 @@
 use spawning_pool::{EntityId};
-use geo::*;
-use spells;
+use crate::geo::*;
+use crate::spells;
 
 #[derive(Clone, Copy, Debug)]
 pub enum ActionTarget {

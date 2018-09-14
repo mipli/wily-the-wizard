@@ -1,13 +1,13 @@
 use tcod::line::{Line};
 use spawning_pool::{EntityId};
 use rand::{thread_rng, Rng};
-use map::*;
+use crate::map::*;
 use geo::*;
-use game::*;
-use actions::*;
-use spells;
-use components;
-use path;
+use crate::game::*;
+use crate::actions::*;
+use crate::spells;
+use crate::components;
+use crate::path;
 
 pub fn melee_attack_entity(actor: EntityId, target: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
     let target_position = get_entity_position(target, state)?;

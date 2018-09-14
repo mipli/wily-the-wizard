@@ -3,21 +3,21 @@ use tcod;
 
 use spawning_pool::EntityId;
 
-use render;
-use components;
-use systems;
+use crate::render;
+use crate::components;
+use crate::systems;
 
-use map::*;
 use geo::*;
-use spatial::*;
-use ai;
-use actions::*;
-use rules::*;
-use utils;
-use consts::*;
-use messages::*;
-use spells;
-use scheduler::{Scheduler};
+use crate::map::*;
+use crate::spatial::*;
+use crate::ai;
+use crate::actions::*;
+use crate::rules::*;
+use crate::utils;
+use crate::consts::*;
+use crate::messages::*;
+use crate::spells;
+use crate::scheduler::{Scheduler};
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {

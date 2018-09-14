@@ -5,11 +5,11 @@ use tcod::console::*;
 use tcod::colors;
 
 use geo::*;
-use consts::*;
+use crate::consts::*;
 
-use utils;
-use game::*;
-use components;
+use crate::utils;
+use crate::game::*;
+use crate::components;
 
 pub struct Tcod {
     pub root: Root,

@@ -1,10 +1,10 @@
 use spawning_pool::{EntityId};
-use screens::*;
-use components;
+use crate::screens::*;
+use crate::components;
 use tcod;
-use utils;
+use crate::utils;
 use tcod::input::{KeyCode};
-use render;
+use crate::render;
 
 pub struct TargetScreen {
     exit: bool,

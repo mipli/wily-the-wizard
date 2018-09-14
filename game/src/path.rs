@@ -2,9 +2,9 @@ use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
 
-use spatial::*;
+use crate::spatial::*;
 use geo::*;
-use map::*;
+use crate::map::*;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 struct State {

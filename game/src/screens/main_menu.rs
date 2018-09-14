@@ -1,10 +1,10 @@
 use tcod::console::*;
-use components;
+use crate::components;
 use tcod::colors;
 use tcod::input::{KeyCode};
-use screens::*;
-use screens::utils::{get_menu};
-use save;
+use crate::screens::*;
+use crate::screens::utils::{get_menu};
+use crate::save;
 
 pub struct MainMenuScreen { 
     exit: bool,

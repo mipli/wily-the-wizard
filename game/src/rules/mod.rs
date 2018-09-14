@@ -1,5 +1,5 @@
-use actions::*;
-use game::*;
+use crate::actions::*;
+use crate::*;
 
 mod items;
 mod spells;

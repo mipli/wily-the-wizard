@@ -1,10 +1,10 @@
-use screens::*;
-use components;
+use crate::screens::*;
+use crate::components;
 use tcod;
 use tcod::input::{KeyCode};
-use render;
+use crate::render;
 use geo::{Point};
-use map::Map;
+use crate::map::Map;
 
 pub struct SpellPositionTargetScreen {
     exit: bool,

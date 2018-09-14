@@ -4,14 +4,14 @@ use rand::Rng;
 
 use spawning_pool::EntityId;
 
-use utils;
-use map;
+use crate::utils;
+use crate::map;
 
-use messages::*;
+use crate::messages::*;
 use geo::*;
-use actions::*;
-use game::*;
-use components;
+use crate::actions::*;
+use crate::game::*;
+use crate::components;
 
 pub fn run(entity: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
     let mut actions = vec![];

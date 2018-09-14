@@ -3,7 +3,7 @@ use std::fmt;
 use std;
 use tcod::colors;
 use geo::*;
-use spells;
+use crate::spells;
 
 use spawning_pool::EntityId;
 use spawning_pool::storage::{Storage, VectorStorage, HashMapStorage};

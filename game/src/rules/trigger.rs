@@ -1,8 +1,8 @@
-use rules::definitions::*;
-use actions::*;
-use game::*;
-use components;
-use spells;
+use crate::rules::definitions::*;
+use crate::actions::*;
+use crate::game::*;
+use crate::components;
+use crate::spells;
 
 pub fn trigger(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     match action.command {
