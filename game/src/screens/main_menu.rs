@@ -92,18 +92,18 @@ impl Screen for MainMenuScreen {
             save_game(state);
         }
         if self.load {
-            actions.push(Action{
-                actor: None,
-                target: None,
-                command: Command::LoadGame
-            });
+            actions.push(Action::new(
+                None,
+                None,
+                Command::LoadGame
+            ));
         }
         if self.create_game {
-            actions.push(Action{
-                actor: None,
-                target: None,
-                command: Command::CreateGame
-            });
+            actions.push(Action::new(
+                None,
+                None,
+                Command::CreateGame
+            ));
         }
         ScreenResult::Stop
     }

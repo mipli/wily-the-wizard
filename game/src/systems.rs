@@ -39,11 +39,11 @@ fn confusion(entity: EntityId, state: &mut GameState) -> Option<Action> {
     for n in neighbours {
         if map::can_walk(n, &state.spatial_table, &state.map) {
             let (x, y) = entity_position.direction_to(n);
-            return Some(Action {
-                    actor: Some(entity),
-                    target: None,
-                    command: Command::WalkDirection{dir: Point::new(x, y)}
-                });
+            return Some(Action::new(
+                    Some(entity),
+                    None,
+                    Command::WalkDirection{dir: Point::new(x, y)}
+                ));
         }
     }
     None
@@ -55,11 +55,11 @@ fn stun(entity: EntityId, state: &mut GameState) -> Option<Action> {
     if entity == state.player {
         state.messages.log(MessageLevel::Info, "The player is stunned");
     }
-    return Some(Action {
-        actor: Some(entity),
-        target: None,
-        command: Command::Wait
-    });
+    return Some(Action::new(
+        Some(entity),
+        None,
+        Command::Wait
+    ));
 }
 
 pub struct DurationSystem {

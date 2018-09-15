@@ -69,11 +69,11 @@ impl Screen for SpellPositionTargetScreen {
             self.exit = true;
         }
         if self.exit && !self.selected {
-            actions.push(Action {
-                actor: Some(state.player),
-                target: None,
-                command: Command::Abort
-            });
+            actions.push(Action::new(
+                Some(state.player),
+                None,
+                Command::Abort
+            ));
         }
         self.selected = false;
         ScreenResult::Stop

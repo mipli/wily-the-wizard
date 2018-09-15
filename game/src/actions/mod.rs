@@ -34,7 +34,7 @@ pub fn perform_action(action: &Action, game_state: &mut GameState) -> ActionResu
             ActionResult::Performed{time: 100}
         },
         Command::WalkDirection{dir} => {
-            if let Some(mut physics) = game_state.spawning_pool.get_mut::<components::Physics>(action.actor.unwrap()) {
+            if let Some(physics) = game_state.spawning_pool.get_mut::<components::Physics>(action.actor.unwrap()) {
                 physics.coord += dir;
             }
             ActionResult::Performed{time: 50}
@@ -306,7 +306,7 @@ fn perform_equip_item(action: &Action, game_state: &mut GameState) {
             Some(item) => item.equip,
             None => None
         };
-        if let Some(mut equipment) = game_state.spawning_pool.get_mut::<components::Equipment>(action.actor.unwrap()) {
+        if let Some(equipment) = game_state.spawning_pool.get_mut::<components::Equipment>(action.actor.unwrap()) {
             if let Some(slot) = slot {
                 performed = true;
                 equipment.items.insert(slot, item_id);
@@ -327,7 +327,7 @@ fn perform_unequip_item(action: &Action, game_state: &mut GameState) {
             Some(item) => item.equip,
             None => None
         };
-        if let Some(mut equipment) = game_state.spawning_pool.get_mut::<components::Equipment>(action.actor.unwrap()) {
+        if let Some(equipment) = game_state.spawning_pool.get_mut::<components::Equipment>(action.actor.unwrap()) {
             if let Some(slot) = slot {
                 performed = true;
                 equipment.items.remove(&slot);
@@ -350,7 +350,7 @@ fn perform_destroy_item(action: &Action, game_state: &mut GameState) {
 fn perform_pick_up_item(action: &Action, game_state: &mut GameState) {
     if let Command::PickUpItem{item_id} = action.command {
         let mut picked = false;
-        if let Some(mut inventory) = game_state.spawning_pool.get_mut::<components::Inventory>(action.actor.unwrap()) {
+        if let Some(inventory) = game_state.spawning_pool.get_mut::<components::Inventory>(action.actor.unwrap()) {
             inventory.items.push(item_id);
             picked = true;
         }
@@ -385,7 +385,7 @@ fn perform_take_damage(action: &Action, game_state: &mut GameState) {
     };
 
     if let Some(ActionTarget::Entity(target)) = action.target {
-        if let Some(mut stats) = game_state.spawning_pool.get_mut::<components::Stats>(target) {
+        if let Some(stats) = game_state.spawning_pool.get_mut::<components::Stats>(target) {
             stats.health -= damage;
         }
     }

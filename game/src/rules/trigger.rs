@@ -45,16 +45,16 @@ pub fn trigger(action: &mut Action, state: &GameState, _rejected_actions: &mut V
                                                 Some(ActionTarget::Entity(actor))
                                             }
                                         };
-                                        reaction_actions.push(Action{
-                                            actor: None,
+                                        reaction_actions.push(Action::new(
+                                            None,
                                             target,
-                                            command: Command::CastSpell{spell: spl}
-                                        });
-                                        reaction_actions.push(Action{
-                                            actor: Some(*entity),
-                                            target: None,
-                                            command: Command::KillEntity
-                                        });
+                                            Command::CastSpell{spell: spl}
+                                        ));
+                                        reaction_actions.push(Action::new(
+                                            Some(*entity),
+                                            None,
+                                            Command::KillEntity
+                                        ));
                                     }
                                 }
                             }

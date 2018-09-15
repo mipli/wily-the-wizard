@@ -55,19 +55,19 @@ impl Screen for LevelUpScreen {
     fn tick(&mut self, state: &mut GameState, _tcod: &mut render::Tcod, actions: &mut Vec<Action>) -> ScreenResult {
         match self.choice {
             Some(LevelUpChoice::Strength) => {
-                actions.push(Action{
-                    actor: Some(state.player),
-                    target: None,
-                    command: Command::LevelUp(LevelUpChoice::Strength)
-                });
+                actions.push(Action::new(
+                    Some(state.player),
+                    None,
+                    Command::LevelUp(LevelUpChoice::Strength)
+                ));
                 self.exit = true;
             },
             Some(LevelUpChoice::Defense) => {
-                actions.push(Action{
-                    actor: Some(state.player),
-                    target: None,
-                    command: Command::LevelUp(LevelUpChoice::Defense)
-                });
+                actions.push(Action::new(
+                    Some(state.player),
+                    None,
+                    Command::LevelUp(LevelUpChoice::Defense)
+                ));
                 self.exit = true;
             },
             None => {}

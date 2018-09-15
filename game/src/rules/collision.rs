@@ -36,11 +36,11 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                                 None => false
                             };
                             if is_closed_door {
-                                rejected_actions.push(Action {
-                                    actor: action.actor,
-                                    target: None,
-                                    command: Command::OpenDoor{entity: *entity}
-                                });
+                                rejected_actions.push(Action::new(
+                                    action.actor,
+                                    None,
+                                    Command::OpenDoor{entity: *entity}
+                                ));
                                 continue;
                             }
                             if game_state.spawning_pool.get::<components::Stats>(*entity).is_none() {
@@ -61,11 +61,11 @@ pub fn collision(action: &mut Action, game_state: &GameState, rejected_actions: 
                                 continue;
                             }
                             if entity_faction != actor_faction {
-                                rejected_actions.push(Action {
-                                    actor: action.actor,
-                                    target: Some(ActionTarget::Entity(*entity)),
-                                    command: Command::AttackEntity{bonus_strength: 0, bonus_defense: 0}
-                                });
+                                rejected_actions.push(Action::new(
+                                    action.actor,
+                                    Some(ActionTarget::Entity(*entity)),
+                                    Command::AttackEntity{bonus_strength: 0, bonus_defense: 0}
+                                ));
                             }
                         }
                         return ActionStatus::Reject;

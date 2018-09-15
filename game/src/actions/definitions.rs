@@ -12,7 +12,19 @@ pub enum ActionTarget {
 pub struct Action {
     pub actor: Option<EntityId>,
     pub target: Option<ActionTarget>,
-    pub command: Command
+    pub command: Command,
+    pub set_time: Option<i32>
+}
+
+impl Action {
+    pub fn new(actor: Option<EntityId>, target: Option<ActionTarget>, command: Command) -> Self {
+        Action {
+            actor,
+            target,
+            command,
+            set_time: None
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

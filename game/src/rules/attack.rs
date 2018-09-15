@@ -25,11 +25,11 @@ pub fn attack(action: &mut Action, state: &GameState, _rejected_actions: &mut Ve
 
             let damage = max(1, attack_strength - target_defense);
 
-            reaction_actions.push(Action{
-                target: Some(ActionTarget::Entity(target_id)),
-                actor: action.actor,
-                command: Command::TakeDamage{damage}
-            });
+            reaction_actions.push(Action::new(
+                action.actor,
+                Some(ActionTarget::Entity(target_id)),
+                Command::TakeDamage{damage}
+            ));
         }
     }
     ActionStatus::Accept
@@ -38,14 +38,14 @@ pub fn attack(action: &mut Action, state: &GameState, _rejected_actions: &mut Ve
 pub fn take_damage(action: &mut Action, state: &GameState, _rejected_actions: &mut Vec<Action>, reaction_actions: &mut Vec<Action>) -> ActionStatus {
     if let Command::TakeDamage{damage} = action.command {
         if let Some(ActionTarget::Entity(target)) = action.target {
-            if let Some(mut stats) = state.spawning_pool.get::<components::Stats>(target) {
+            if let Some(stats) = state.spawning_pool.get::<components::Stats>(target) {
                 let health = stats.health - damage;
                 if health <= 0 {
-                    reaction_actions.push(Action{
-                        actor: Some(target),
-                        target: None,
-                        command: Command::KillEntity
-                    });
+                    reaction_actions.push(Action::new(
+                        Some(target),
+                        None,
+                        Command::KillEntity
+                    ));
                 }
             } else {
                 return ActionStatus::Reject;

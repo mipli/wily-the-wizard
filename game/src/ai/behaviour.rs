@@ -14,11 +14,11 @@ pub fn melee_attack_entity(actor: EntityId, target: EntityId, state: &mut GameSt
     let entity_position = get_entity_position(actor, state)?;
 
     if entity_position.tile_distance(target_position) == 1 {
-        Some(vec![Action {
-            actor: Some(actor),
-            target: Some(ActionTarget::Entity(target)),
-            command: Command::AttackEntity{bonus_strength: 0, bonus_defense: 0}
-        }])
+        Some(vec![Action::new(
+            Some(actor),
+            Some(ActionTarget::Entity(target)),
+            Command::AttackEntity{bonus_strength: 0, bonus_defense: 0}
+        )])
     } else {
         None
     }
@@ -29,11 +29,11 @@ pub fn walk_to_away_from(actor: EntityId, pos: Point, state: &mut GameState) -> 
     let mut dir: Point = actor_position.direction_to(pos).into();
     dir = dir * -1;
     if can_walk(actor_position + dir, &state.spatial_table, &state.map) {
-        Some(vec![Action {
-            actor: Some(actor),
-            target: None,
-            command: Command::WalkDirection{dir}
-        }])
+        Some(vec![Action::new(
+            Some(actor),
+            None,
+            Command::WalkDirection{dir}
+        )])
     } else {
         None
     }
@@ -43,11 +43,11 @@ pub fn walk_to_position(actor: EntityId, end: Point, state: &mut GameState) -> O
     let start= get_entity_position(actor, state)?;
     let next_pos = step_towards_position(actor, start, end, state)?;
     let dir = Point::new(next_pos.x - start.x, next_pos.y - start.y);
-    Some(vec![Action {
-        actor: Some(actor),
-        target: None,
-        command: Command::WalkDirection{dir}
-    }])
+    Some(vec![Action::new(
+        Some(actor),
+        None,
+        Command::WalkDirection{dir}
+    )])
 }
 
 pub fn wait_and_forget(actor: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
@@ -55,11 +55,11 @@ pub fn wait_and_forget(actor: EntityId, state: &mut GameState) -> Option<Vec<Act
     if let Some(mem) = state.spawning_pool.get_mut::<AiMemory>(actor) {
         mem.path_memory.forget();
     }
-    Some(vec![Action {
-        actor: Some(actor),
-        target: None,
-        command: Command::Wait
-    }])
+    Some(vec![Action::new(
+        Some(actor),
+        None,
+        Command::Wait
+    )])
 }
 
 pub fn cast_spell_at(actor: EntityId, target: EntityId, state: &mut GameState) -> Option<Vec<Action>> {
@@ -76,25 +76,25 @@ pub fn cast_spell_at(actor: EntityId, target: EntityId, state: &mut GameState) -
             spells::SpellTargetType::Projectile => {
                 let projectile_target = get_projectile_target(actor, target, state);
                 if projectile_target == target {
-                    return Some(vec![Action {
-                        actor: Some(actor),
-                        target: Some(ActionTarget::Entity(projectile_target)),
-                        command: Command::CastSpell{
+                    return Some(vec![Action::new(
+                        Some(actor),
+                        Some(ActionTarget::Entity(projectile_target)),
+                        Command::CastSpell{
                             spell
                         }
-                    }]);
+                    )]);
                 } else {
                     return None;
                 }
             },
             _ => {
-                return Some(vec![Action {
-                    actor: Some(actor),
-                    target: Some(ActionTarget::Entity(target)),
-                    command: Command::CastSpell{
+                return Some(vec![Action::new(
+                    Some(actor),
+                    Some(ActionTarget::Entity(target)),
+                    Command::CastSpell{
                         spell
                     }
-                }]);
+                )]);
             }
         };
     } else {

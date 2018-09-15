@@ -101,11 +101,11 @@ impl Screen for InventoryScreen {
                 },
                 InventoryAction::DropItem => {
                     self.target = true;
-                    actions.push(Action{
-                        actor: Some(state.player),
-                        target: None,
-                        command: Command::DropItem{item_id: selected}
-                    });
+                    actions.push(Action::new(
+                        Some(state.player),
+                        None,
+                        Command::DropItem{item_id: selected}
+                    ));
                 }
             };
             self.selected = None;
@@ -131,11 +131,11 @@ impl Screen for InventoryScreen {
 impl InventoryScreen {
     fn add_use_action(&mut self, item_id: EntityId, actions: &mut Vec<Action>, state: &GameState) {
         if !self.equip_action(state.scheduler.get_current(), item_id, actions, &state.spawning_pool) {
-            actions.push(Action{
-                actor: Some(state.scheduler.get_current()),
-                target: None,
-                command: Command::UseItem{item_id}
-            });
+            actions.push(Action::new(
+                Some(state.scheduler.get_current()),
+                None,
+                Command::UseItem{item_id}
+            ));
         }
     }
 
@@ -149,26 +149,26 @@ impl InventoryScreen {
                 let equipped = self.currently_equipped(entity, slot, spawning_pool);
                 match equipped {
                     Some(eqid) => {
-                        actions.push(Action{
-                            actor: Some(entity),
-                            target: None,
-                            command: Command::UnequipItem{item_id}
-                        });
+                        actions.push(Action::new(
+                            Some(entity),
+                            None,
+                            Command::UnequipItem{item_id}
+                        ));
 
                         if eqid != item_id {
-                            actions.push(Action{
-                                actor: Some(entity),
-                                target: None,
-                                command: Command::EquipItem{item_id}
-                            });
+                            actions.push(Action::new(
+                                Some(entity),
+                                None,
+                                Command::EquipItem{item_id}
+                            ));
                         }
                     },
                     None => {
-                        actions.push(Action{
-                            actor: Some(entity),
-                            target: None,
-                            command: Command::EquipItem{item_id}
-                        });
+                        actions.push(Action::new(
+                            Some(entity),
+                            None,
+                            Command::EquipItem{item_id}
+                        ));
                     }
                 }
                 return true;

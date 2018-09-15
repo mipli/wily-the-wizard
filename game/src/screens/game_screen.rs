@@ -83,20 +83,20 @@ impl Screen for GameScreen {
     fn tick(&mut self, state: &mut GameState, _tcod: &mut render::Tcod, actions: &mut Vec<Action>) -> ScreenResult {
         match self.input_command {
             Some(InputCommand::GameCommand{ref command}) => {
-                actions.push(Action{
-                    actor: Some(state.player),
-                    target: None,
-                    command: command.clone()
-                });
+                actions.push(Action::new(
+                    Some(state.player),
+                    None,
+                    command.clone()
+                ));
             },
             Some(InputCommand::SelfHeal) => {
-                actions.push(Action{
-                    actor: Some(state.player),
-                    target: Some(ActionTarget::Entity(state.player)),
-                    command: Command::CastSpell{
+                actions.push(Action::new(
+                    Some(state.player),
+                    Some(ActionTarget::Entity(state.player)),
+                    Command::CastSpell{
                         spell: spells::Spell::create(spells::Spells::Heal)
                     }
-                });
+                ));
             }
             Some(InputCommand::Quit) => {
                 self.exit = true;
@@ -121,11 +121,11 @@ impl Screen for GameScreen {
                     None => panic!("Non physical entity trying to pick something up")
                 };
                 if let Some(item) = get_item_at(position, state) {
-                    actions.push(Action{
-                        actor: Some(state.player),
-                        target: None,
-                        command: Command::PickUpItem{item_id: item}
-                    });
+                    actions.push(Action::new(
+                        Some(state.player),
+                        None,
+                        Command::PickUpItem{item_id: item}
+                    ));
                 }
             },
             Some(InputCommand::TileInteraction) => {
@@ -263,18 +263,18 @@ fn tile_interaction(state: &GameState, actions: &mut Vec<Action>) {
 }
 
 fn trigger_stair_interaction(state: &GameState, actions: &mut Vec<Action>) {
-    actions.push(Action{
-        actor: Some(state.player),
-        target: None,
-        command: Command::DescendStairs
-    });
+    actions.push(Action::new(
+        Some(state.player),
+        None,
+        Command::DescendStairs
+    ));
 }
 
 fn trigger_portal_interaction(state: &GameState, actions: &mut Vec<Action>) {
-    actions.push(Action{
-        actor: Some(state.player),
-        target: None,
-        command: Command::Win
-    });
+    actions.push(Action::new(
+        Some(state.player),
+        None,
+        Command::Win
+    ));
 }
 

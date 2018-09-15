@@ -19,16 +19,17 @@ pub fn use_item(action: &mut Action, game_state: &GameState, _rejected_actions: 
                 if let Some(on_use) = get_callback(action, &game_state.spawning_pool) {
                     match on_use {
                         components::OnUseCallback::Spell(spell) => {
-                            reaction_actions.push(Action{
-                                actor: action.actor,
-                                target: None,
-                                command: Command::DestroyItem{item_id}
-                            });
-                            let mut act = Action {
-                                actor: action.actor,
-                                target: None,
-                                command: Command::CastSpell{spell: spells::Spell::create(spell)}
-                            };
+                            reaction_actions.push(Action::new(
+                                action.actor,
+                                None,
+                                Command::DestroyItem{item_id}
+                            ));
+                            let mut act = Action::new(
+                                action.actor,
+                                None,
+                                Command::CastSpell{spell: spells::Spell::create(spell)}
+                            );
+                            act.set_time = Some(50);
                             if item.kind == components::ItemKind::Potion {
                                 act.target = Some(ActionTarget::Entity(action.actor.unwrap()));
                             }

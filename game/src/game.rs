@@ -215,7 +215,14 @@ impl Game {
                         } else {
                             performed_action = performed_action || match action_result {
                                 ActionResult::Performed{time} => {
-                                    used_time += time;
+                                    match action.set_time {
+                                        Some(m) => {
+                                            used_time += m;
+                                        },
+                                        None => {
+                                            used_time += time;
+                                        }
+                                    };
                                     true
                                 },
                                 _ => false
@@ -268,11 +275,11 @@ impl Game {
                         AI::SpellCaster => ai::perform_spell_ai(self.state.scheduler.get_current(), &mut self.state),
                         _ => None
                     };
-                    acts.or_else(|| Some(vec![Action {
-                        actor: Some(self.state.scheduler.get_current()),
-                        target: None,
-                        command: Command::Wait
-                    }]))
+                    acts.or_else(|| Some(vec![Action::new(
+                        Some(self.state.scheduler.get_current()),
+                        None,
+                        Command::Wait
+                    )]))
                 }
             }
         } else {
